@@ -2,8 +2,9 @@ let canvas;
 let ctx;
 const gBArrayHeight = 20; // Number of cells in array height
 const gBArrayWidth = 10; // Number of cells in array width
-let startX = 4; // Starting X position for Tetromino
+let startX = 3; // Starting X position for Tetromino
 let startY = 0; // Starting Y position for Tetromino
+const blockSize = 20;
 
 // Used as a look up table where each value in the array
 // contains the x & y position we can use to draw the
@@ -49,9 +50,9 @@ document.addEventListener('DOMContentLoaded', SetupCanvas);
 // [0,0] Pixels X: 11 Y: 9, [1,0] Pixels X: 34 Y: 9, ...
 function CreateCoordArray(){
     let i = 0, j = 0;
-    for(let y = 9; y <= 446; y += 23){
+    for(let y = 10; y <= 410; y += blockSize){
         // 12 * 23 = 276 - 12 = 264 Max X value
-        for(let x = 11; x <= 264; x += 23){
+        for(let x = 10; x <= 210; x += blockSize){
             coordinateArray[i][j] = new Coordinates(x,y);
             // console.log(i + ":" + j + " = " + coordinateArray[i][j].x + ":" + coordinateArray[i][j].y);
             i++;
@@ -61,23 +62,43 @@ function CreateCoordArray(){
     }
 }
 
+function DrawGridLines(){
+    ctx.strokeStyle = 'grey';
+    ctx.beginPath();
+
+    for(let i = 30; i < 210; i += blockSize){
+        ctx.moveTo(i, 10);
+        ctx.lineTo(i, 410);
+        ctx.stroke();
+    }
+
+    for(let i = 30; i < 410; i += blockSize){
+        ctx.moveTo(10, i);
+        ctx.lineTo(210, i);
+        ctx.stroke();
+    }
+}
+
 function SetupCanvas(){
     canvas = document.getElementById('my-canvas');
     ctx = canvas.getContext('2d');
-    canvas.width = 936;
-    canvas.height = 956;
+    canvas.width = 900;
+    canvas.height = 900;
  
     // Double the size of elements to fit the screen
     ctx.scale(2, 2);
  
     // Draw Canvas background
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Draw gameboard rectangle
-    ctx.strokeStyle = 'black';
-    ctx.strokeRect(8, 8, 280, 462);
- 
+    ctx.strokeStyle = 'white';
+    ctx.strokeRect(9, 9, 202, 402);
+
+    // Draw gameboard grid lines
+    DrawGridLines();
+
     // 2. Handle keyboard presses
     document.addEventListener('keydown', HandleKeyPress);
  
@@ -89,12 +110,27 @@ function SetupCanvas(){
     // Create the rectangle lookup table
     CreateCoordArray();
  
-    DrawTetromino();
+    DrawTetrominos();
 }
 
-function DrawTetromino(){
-    // Cycle through the x & y array for the tetromino looking
+function DrawTetrominos(){
+    // Cycle through the x & y array for all tetrominos looking
     // for all the places a square would be drawn
+    DrawGridLines();
+
+    for(let x = 0; x < stoppedShapeArray.length; x++){
+        for(let y = 0; y < stoppedShapeArray[x].length; y++){
+            if (!(typeof stoppedShapeArray[x][y] == "string")) {
+                continue;
+            }
+            console.log("true" + y);
+            let coorX = coordinateArray[x][y].x;
+            let coorY = coordinateArray[x][y].y;
+            ctx.fillStyle = stoppedShapeArray[x][y];
+            ctx.fillRect(coorX, coorY, blockSize, blockSize);
+        }
+    }
+
     for(let i = 0; i < curTetromino.length; i++){
  
         // Move the Tetromino x & y values to the tetromino
@@ -116,7 +152,7 @@ function DrawTetromino(){
         // 1. Draw a square at the x & y coordinates that the lookup
         // table provides
         ctx.fillStyle = curTetrominoColor;
-        ctx.fillRect(coorX, coorY, 21, 21);
+        ctx.fillRect(coorX, coorY, blockSize, blockSize);
     }
 }
 
@@ -132,7 +168,7 @@ function HandleKeyPress(key){
         if(!HittingTheWall() && !CheckForHorizontalCollision()){
             DeleteTetromino();
             startX--;
-            DrawTetromino();
+            DrawTetrominos();
         } 
  
     // arrow right keycode (RIGHT)
@@ -143,7 +179,7 @@ function HandleKeyPress(key){
         if(!HittingTheWall() && !CheckForHorizontalCollision()){
             DeleteTetromino();
             startX++;
-            DrawTetromino();
+            DrawTetrominos();
         }
  
     // arrow down keycode (DOWN)
@@ -163,17 +199,17 @@ function MoveTetrominoDown(){
     if(!CheckForVerticalCollison()){
         DeleteTetromino();
         startY++;
-        DrawTetromino();
+        DrawTetrominos();
     }
 }
 
 // 10. Automatically calls for a Tetromino to fall every second
  
-window.setInterval(function(){
-    if(winOrLose != "Game Over"){
-        MoveTetrominoDown();
-    }
-  }, 1000);
+// window.setInterval(function(){
+//     if(winOrLose != "Game Over"){
+//         MoveTetrominoDown();
+//     }
+//   }, 1000);
  
  
 // Clears the previously drawn Tetromino
@@ -190,8 +226,8 @@ function DeleteTetromino(){
         // Draw white where colored squares used to be
         let coorX = coordinateArray[x][y].x;
         let coorY = coordinateArray[x][y].y;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(coorX, coorY, 21, 21);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(coorX, coorY, blockSize, blockSize);
     }
 }
 
@@ -272,7 +308,7 @@ function CheckForVerticalCollison(){
             DeleteTetromino();
             // Increment to put into place and draw
             startY++;
-            DrawTetromino();
+            DrawTetrominos();
             collision = true;
             break;
         }
@@ -308,9 +344,9 @@ function CheckForVerticalCollison(){
  
             // Create the next Tetromino and draw it and reset direction
             direction = DIRECTION.IDLE;
-            startX = 4;
+            startX = 3;
             startY = 0;
-            DrawTetromino();
+            DrawTetrominos();
         }
  
     }
@@ -400,8 +436,8 @@ function CheckForCompletedRows(){
                 let coorX = coordinateArray[i][y].x;
                 let coorY = coordinateArray[i][y].y;
                 // Draw the square as white
-                ctx.fillStyle = 'white';
-                ctx.fillRect(coorX, coorY, 21, 21);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(coorX, coorY, blockSize, blockSize);
             }
         }
     }
@@ -435,15 +471,15 @@ function MoveAllRowsDown(rowsToDelete, startOfDeletion){
                 let coorX = coordinateArray[x][y2].x;
                 let coorY = coordinateArray[x][y2].y;
                 ctx.fillStyle = nextSquare;
-                ctx.fillRect(coorX, coorY, 21, 21);
+                ctx.fillRect(coorX, coorY, blockSize, blockSize);
  
                 square = 0;
                 gameBoardArray[x][i] = 0; // Clear the spot in GBA
                 stoppedShapeArray[x][i] = 0; // Clear the spot in SSA
                 coorX = coordinateArray[x][i].x;
                 coorY = coordinateArray[x][i].y;
-                ctx.fillStyle = 'white';
-                ctx.fillRect(coorX, coorY, 21, 21);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(coorX, coorY, blockSize, blockSize);
             }
         }
     }
