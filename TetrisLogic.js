@@ -2,8 +2,8 @@ let canvas;
 let ctx;
 const gBArrayHeight = 20; // Number of cells in array height
 const gBArrayWidth = 10; // Number of cells in array width
-const gameboardX = 20;
-const gameboardY = 40;
+const gameboardX = 115;
+const gameboardY = 20;
 const BLOCKSIZE = 20;
 
 const MOVELEFT = 37;
@@ -14,13 +14,17 @@ const ROTATECLOCKWISE = 88;
 const ROTATECOUNTER = 90;
 const ROTATE180 = 32;
 const HOLD = 67;
+const STARTSPRINT = 70;
 
 let previewNo = 5;
-
+let holdPiece = null;
 let currentPiece;
 let linesCleared;
+let gameStart = false;
 
+var timerDisplay = document.getElementById('timer');
 
+let running = 0;
 let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
 
 // 6. Array for storing stopped shapes
@@ -200,8 +204,11 @@ class Bag{
             this.Generate();
         }
         
-        if(piece in this.offset){
+        if(this.offset.includes(piece)){
             return new Piece(4, 2, piece);
+        }
+        if(piece == I){
+            return new Piece(5, 3, piece); 
         }
         return new Piece(5, 2, piece);
     }
@@ -233,40 +240,41 @@ class Preview{
 }
 
 class Draw{
+    
+    static Setup = ()=>{
+        canvas = document.getElementById('myCanvas');
+        ctx = canvas.getContext('2d');
+        canvas.width = 650;
+        canvas.height = 650;
+
+        // Double the size of elements to fit the screen
+        ctx.scale(1.5, 1.5);
+
+        this.ClearCanvas();
+        this.DrawGridLines();
+
+        let sprintButton = document.getElementById('sprint');
+        sprintButton.addEventListener('click', Logic.StartGameDelay);
+        document.addEventListener('keydown', Logic.HandleKeyPress);
+    }
+    
     static DrawGridLines(){
         ctx.strokeStyle = 'grey';
         ctx.beginPath();
         
-        for(let i = gameboardX + BLOCKSIZE + 1; i < gameboardX + 202; i += BLOCKSIZE){
+        for(let i = gameboardX + BLOCKSIZE + 1; i < gameboardX + 202 - BLOCKSIZE; i += BLOCKSIZE){
             ctx.moveTo(i, gameboardY);
-            ctx.lineTo(i, gameboardX + 402 + BLOCKSIZE);
+            ctx.lineTo(i, gameboardY + 402);
             ctx.stroke();
         }
     
-        for(let i = gameboardY + BLOCKSIZE + 1; i < gameboardY + 402; i += BLOCKSIZE){
+        for(let i = gameboardY + BLOCKSIZE + 1; i < gameboardY + 402 - BLOCKSIZE; i += BLOCKSIZE){
             ctx.moveTo(gameboardX, i);
             ctx.lineTo(gameboardX + 202, i);
             ctx.stroke();
         }
     }
-
-    static Setup = ()=>{
-        canvas = document.getElementById('myCanvas');
-        ctx = canvas.getContext('2d');
-        canvas.width = 900;
-        canvas.height = 900;
-
-        // Double the size of elements to fit the screen
-        ctx.scale(2, 2);
-
-        CreateCoordArray();
-
-        currentPiece = bag.Next();
-        Logic.DrawBlocks();
-        
-        document.addEventListener('keydown', Logic.HandleKeyPress);
-    }
-
+    
     static DrawPlacedBlocks(){
         for(let x = 0; x < placedPiecesArray.length; x++){
             for(let y = 0; y < placedPiecesArray[x].length; y++){
@@ -296,12 +304,11 @@ class Draw{
                 ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             }
         }
-        
     }
 
-    static ClearBoard(){
+    static ClearCanvas(){
         // Draw Canvas background
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = 'rgb(17,17,17)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Draw gameboard rectangle
@@ -346,10 +353,66 @@ class Draw{
     }
 
     static DrawPreview(){
+        let coorX;
+        let coorY;
+
         for(let i = 0; i < previewNo; i++){
-            piece = preview.list[i];
-            
-            ctx.fillStyle = piece.color;
+            let piece = preview.list[i];
+            let piecePosition = Logic.ConvertToCoordinates(piece);
+
+            for(let j = 0; j < piecePosition.length; j++){
+                let x = piecePosition[j][0];
+                let y = piecePosition[j][1];
+    
+                if(y == -1){
+                    coorY = coordinateArray[x][y+1].y - BLOCKSIZE;
+                    coorX = coordinateArray[x][y+1].x;
+                } else{
+                    coorY = coordinateArray[x][y].y;
+                    coorX = coordinateArray[x][y].x;
+                }
+                coorY += (BLOCKSIZE * 3) * i + (BLOCKSIZE * 2);
+                coorX += BLOCKSIZE * 8;
+
+                if(piece.shape == I){
+                    coorY -= BLOCKSIZE;
+                }
+
+                ctx.fillStyle = 'rgb(' + piece.color[0] + ',' + piece.color[1] + ',' + piece.color[2] + ')';
+                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                
+            }
+        }
+    }
+
+    static DrawHold(){
+        if(holdPiece == null){
+            return;
+        }
+        let coorX;
+        let coorY;
+        let piecePosition = Logic.ConvertToCoordinates(holdPiece);
+        for(let j = 0; j < piecePosition.length; j++){
+            let x = piecePosition[j][0];
+            let y = piecePosition[j][1];
+
+            if(y == -1){
+                coorY = coordinateArray[x][y+1].y - BLOCKSIZE;
+                coorX = coordinateArray[x][y+1].x;
+            } else{
+                coorY = coordinateArray[x][y].y;
+                coorX = coordinateArray[x][y].x;
+            }
+            coorY +=  BLOCKSIZE * 2;
+            coorX -= BLOCKSIZE * 7;
+
+            if(holdPiece.shape == I){
+                coorY -= BLOCKSIZE;
+                coorX -= BLOCKSIZE;
+            }
+
+            ctx.fillStyle = 'rgb(' + holdPiece.color[0] + ',' + holdPiece.color[1] + ',' + holdPiece.color[2] + ')';
+            ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             
         }
     }
@@ -357,6 +420,493 @@ class Draw{
 
 class Logic{
     static placePiece;
+    static canHold = true; 
+
+    static StartSprint = () =>{
+        this.ResetEverything();
+        CreateCoordArray();
+        currentPiece = bag.Next();
+        Logic.DrawBlocks();
+        startTimer();
+        gameStart = true;
+    }
+
+    static StartGameDelay = () =>{
+        setTimeout(this.StartSprint, 0);
+    }
+
+    static ResetEverything(){
+        bag = new Bag();
+        preview = new Preview();
+        coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
+        placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
+        currentPiece = null;
+        holdPiece = null;
+    }
+
+    static HandleKeyPress = (key)=>{
+        if(!(gameStart)){
+            if(key.keyCode == STARTSPRINT){
+                Logic.StartGameDelay();
+            }
+            return;
+        }
+        switch(key.keyCode){
+            case MOVELEFT:
+                currentPiece.x -= 1;
+
+                if(!(this.ValidSpace(currentPiece))){
+                    currentPiece.x += 1;
+                }
+                break;
+            
+            case MOVERIGHT:
+                currentPiece.x += 1;
+                
+                if(!(this.ValidSpace(currentPiece))){
+                    currentPiece.x -= 1;
+                }
+                break;
+            
+            case SOFTDROP:
+                while(true){
+                    currentPiece.y += 1;
+                    if (!(Logic.ValidSpace(currentPiece))){
+                        currentPiece.y -= 1;
+                        break;
+                    }
+                }
+                break;
+            
+            case HARDDROP:
+                while(true){
+                    currentPiece.y += 1;
+                    if (!(Logic.ValidSpace(currentPiece))){
+                        currentPiece.y -= 1;
+                        break;
+                    }
+                }
+                Logic.placePiece = true;
+                break;
+
+            case ROTATECLOCKWISE:
+                currentPiece.rotation += 1;
+                if (!(Logic.ValidSpace(currentPiece))){
+                    if (!(Logic.SRS(true))){
+                        currentPiece.rotation -= 1;
+                    }
+                }
+                break;
+
+            case ROTATECOUNTER:
+                if (currentPiece.rotation == 0){
+                    currentPiece.rotation = currentPiece.shape.length - 1;
+                } else{
+                currentPiece.rotation -= 1;
+                }
+
+                if (!(Logic.ValidSpace(currentPiece))){
+                    if (!(Logic.SRS(false))){
+                        currentPiece.rotation += 1;
+                    }
+                }
+                break;
+
+            case HOLD:
+                if(Logic.canHold){
+                    Logic.canHold = false;
+                    Logic.Hold();
+                }
+                break;
+            
+            case STARTSPRINT:
+                Logic.StartGameDelay();
+                break;
+
+            default:
+        }
+        if(Logic.placePiece){
+            this.ChangePiece();
+            Logic.placePiece = false;
+            Logic.canHold = true;
+        }
+        this.DrawBlocks();
+    }
+
+    static SRS(clockwise){
+        let rotate = currentPiece.rotation % currentPiece.shape.length;
+        if(currentPiece.shape == I){
+            if(rotate == 0){
+                if(clockwise){ //Rotate from 3 to 0
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y += 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 2;
+                    currentPiece.y += 1;
+                    return false;
+                } else{ //Rotate from 1 to 0
+                    currentPiece.x += 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 2;
+                    return false;
+                }
+            }
+            if(rotate == 1){
+                if(clockwise){ //Rotate from 0 to 1
+                    currentPiece.x -= 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 2;
+                    return false;
+                } else{ //Rotate from 2 to 1
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y += 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 2;
+                    currentPiece.y += 1;
+                    return false;
+                }
+            }
+            if(rotate == 2){
+                if(clockwise){
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y -= 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 2;
+                    currentPiece.y -= 1;
+                    return false;  
+                } else{ //Rotate from 3 to 2
+                    currentPiece.x -= 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 2;
+                    return false;
+                }
+            }
+            if(rotate == 3){
+                if(clockwise){ //Rotate from 2 to 3
+                    currentPiece.x += 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 2;
+                    return false;
+                } else{ //Rotate from 0 to 3
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 3;
+                    currentPiece.y -= 2;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 3;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 2;
+                    currentPiece.y -= 1;
+                    return false;  
+                }
+            }
+        } else{ //S Z L J T pieces
+            if(rotate == 0){
+                if(clockwise){
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y += 2;
+                    return false;
+                } else{
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 2;
+                    return false;
+                }
+            }
+            if(rotate == 1){
+                if(clockwise){
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 2;
+                    return false;
+                } else{
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 2;
+                    return false;
+                }
+            }
+            if(rotate == 2){
+                if(clockwise){
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 2;
+                    return false;
+                } else{
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y -= 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    currentPiece.y += 2;
+                    return false;
+                }
+            }
+            if(rotate == 3){
+                if(clockwise){
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y -= 2;
+                    return false;
+                } else{
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.y -= 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y += 3;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x += 1;
+                    if(this.ValidSpace(currentPiece)){
+                        return true;
+                    }
+                    currentPiece.x -= 1;
+                    currentPiece.y -= 2;
+                    return false;
+                }
+            }
+        }
+    }
 
     static ConvertToCoordinates(piece){
         let positions = [];
@@ -386,64 +936,6 @@ class Logic{
         currentPiece = preview.Next();
         Logic.ClearRows();
     }
-    // Main loop of program where everything is tested
-    static HandleKeyPress = (key)=>{
-        switch(key.keyCode){
-            case MOVELEFT:
-                currentPiece.x -= 1;
-
-                if(!(this.ValidSpace(currentPiece))){
-                    currentPiece.x += 1;
-                }
-                break;
-            
-            case MOVERIGHT:
-                currentPiece.x += 1;
-                
-                if(!(this.ValidSpace(currentPiece))){
-                    currentPiece.x -= 1;
-                }
-                break;
-            
-            case SOFTDROP:
-                currentPiece.y += 1;
-
-                if(!(this.ValidSpace(currentPiece))){
-                    currentPiece.y -= 1;
-                }
-                break;
-            
-            case HARDDROP:
-                while(true){
-                    currentPiece.y += 1;
-                    if (!(Logic.ValidSpace(currentPiece))){
-                        currentPiece.y -= 1;
-                        break;
-                    }
-                }
-                Logic.placePiece = true;
-                break;
-
-            case ROTATECLOCKWISE:
-                currentPiece.rotation += 1;
-                break;``
-
-            case ROTATECOUNTER:
-                if (currentPiece.rotation == 0){
-                    currentPiece.rotation = currentPiece.shape.length - 1;
-                } else{
-                currentPiece.rotation -= 1;
-                }
-                break;
-
-            default:
-        }
-        if(Logic.placePiece){
-            this.ChangePiece();
-            Logic.placePiece = false;
-        }
-        this.DrawBlocks();
-    }
 
     static ValidSpace(piece){
         let piecePosition = Logic.ConvertToCoordinates(piece);
@@ -470,12 +962,13 @@ class Logic{
     }
 
     static DrawBlocks(){
-        Draw.ClearBoard();
+        Draw.ClearCanvas();
         Draw.DrawGridLines();
         Draw.DrawGhostPiece();
         Draw.DrawPlacedBlocks();
         Draw.DrawCurrentPiece();
         Draw.DrawPreview();
+        Draw.DrawHold();
     }
 
     static ClearRows(){
@@ -505,6 +998,29 @@ class Logic{
             }
         }
     }
+
+    static Hold(){
+        if(holdPiece == null){
+            holdPiece = currentPiece;
+            currentPiece = preview.Next();
+        } else{
+            let temp = currentPiece;
+            currentPiece = holdPiece;
+            holdPiece = temp;
+        }
+        
+        if(bag.offset.includes(holdPiece.shape)){
+            holdPiece.x = 4;
+            holdPiece.y = 2;
+        } else if(holdPiece.shape == I){
+            holdPiece.x = 5;
+            holdPiece.y = 3;
+        } else if(holdPiece.shape == O){
+            holdPiece.x = 5;
+            holdPiece.y = 2;
+        }
+        holdPiece.rotation = 0;
+    }
 }
 
 function Shuffle(a) {
@@ -530,8 +1046,31 @@ function CreateCoordArray(){
     }
 } 
 
+function startTimer(){
+    if(!running){
+        startTime = new Date().getTime();
+        tInterval = setInterval(getShowTime, 1);
+   
+        paused = 0;
+        running = 1;
+    }
+}
 
+function getShowTime(){
+    updatedTime = new Date().getTime();
+    difference =  updatedTime - startTime;
 
+    var minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    var milliseconds = Math.floor((difference % (1000 * 60)) / 1);
+    milliseconds = milliseconds % 1000;
+
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+    milliseconds = (milliseconds < 100) ? (milliseconds < 10) ? "00" + milliseconds : "0" + milliseconds : milliseconds;
+    timerDisplay.innerHTML = minutes + ':' + seconds + ':' + milliseconds;
+}
+  
 let bag = new Bag();
 let preview = new Preview();
 document.addEventListener('DOMContentLoaded', Draw.Setup);
