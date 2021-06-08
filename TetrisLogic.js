@@ -2,6 +2,8 @@ let canvas;
 let ctx;
 const gBArrayHeight = 20; // Number of cells in array height
 const gBArrayWidth = 10; // Number of cells in array width
+const gameboardX = 20;
+const gameboardY = 40;
 const BLOCKSIZE = 20;
 
 const MOVELEFT = 37;
@@ -12,6 +14,8 @@ const ROTATECLOCKWISE = 88;
 const ROTATECOUNTER = 90;
 const ROTATE180 = 32;
 const HOLD = 67;
+
+let previewNo = 5;
 
 let currentPiece;
 let linesCleared;
@@ -213,20 +217,35 @@ class Bag{
 
 }
 
+class Preview{
+    constructor(){
+        this.list = []
+        for(let i = 0; i < previewNo; i++){
+            this.list.push(bag.Next());
+        }
+    }
+
+    Next(){
+        let nextPiece = this.list.shift();
+        this.list.push(bag.Next());
+        return nextPiece;
+    }
+}
+
 class Draw{
     static DrawGridLines(){
         ctx.strokeStyle = 'grey';
         ctx.beginPath();
         
-        for(let i = 30; i < 210; i += BLOCKSIZE){
-            ctx.moveTo(i, 10);
-            ctx.lineTo(i, 410);
+        for(let i = gameboardX + BLOCKSIZE + 1; i < gameboardX + 202; i += BLOCKSIZE){
+            ctx.moveTo(i, gameboardY);
+            ctx.lineTo(i, gameboardX + 402 + BLOCKSIZE);
             ctx.stroke();
         }
     
-        for(let i = 30; i < 410; i += BLOCKSIZE){
-            ctx.moveTo(10, i);
-            ctx.lineTo(210, i);
+        for(let i = gameboardY + BLOCKSIZE + 1; i < gameboardY + 402; i += BLOCKSIZE){
+            ctx.moveTo(gameboardX, i);
+            ctx.lineTo(gameboardX + 202, i);
             ctx.stroke();
         }
     }
@@ -240,18 +259,10 @@ class Draw{
         // Double the size of elements to fit the screen
         ctx.scale(2, 2);
 
-        // Draw Canvas background
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw gameboard rectangle
-        ctx.strokeStyle = 'white';
-        ctx.strokeRect(9, 9, 202, 402);
-
         CreateCoordArray();
 
         currentPiece = bag.Next();
-        Logic.RedrawBlocks();
+        Logic.DrawBlocks();
         
         document.addEventListener('keydown', Logic.HandleKeyPress);
     }
@@ -295,7 +306,7 @@ class Draw{
         
         // Draw gameboard rectangle
         ctx.strokeStyle = 'white';
-        ctx.strokeRect(9, 9, 202, 402);
+        ctx.strokeRect(gameboardX, gameboardY, 202, 402);
     }
 
     static DrawGhostPiece(){
@@ -333,6 +344,15 @@ class Draw{
 
         currentPiece.y -= counter;
     }
+
+    static DrawPreview(){
+        for(let i = 0; i < previewNo; i++){
+            piece = preview.list[i];
+            
+            ctx.fillStyle = piece.color;
+            
+        }
+    }
 }
 
 class Logic{
@@ -363,7 +383,7 @@ class Logic{
             placedPiecesArray[position[1]][position[0]] = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
         }
 
-        currentPiece = bag.Next();
+        currentPiece = preview.Next();
         Logic.ClearRows();
     }
     // Main loop of program where everything is tested
@@ -422,7 +442,7 @@ class Logic{
             this.ChangePiece();
             Logic.placePiece = false;
         }
-        this.RedrawBlocks();
+        this.DrawBlocks();
     }
 
     static ValidSpace(piece){
@@ -449,12 +469,13 @@ class Logic{
         return true;
     }
 
-    static RedrawBlocks(){
+    static DrawBlocks(){
         Draw.ClearBoard();
         Draw.DrawGridLines();
         Draw.DrawGhostPiece();
         Draw.DrawPlacedBlocks();
         Draw.DrawCurrentPiece();
+        Draw.DrawPreview();
     }
 
     static ClearRows(){
@@ -486,12 +507,6 @@ class Logic{
     }
 }
 
-// class Main{
-//     constructor(){
-        
-//     }
-// }
-
 function Shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
@@ -505,8 +520,8 @@ function Shuffle(a) {
 
 function CreateCoordArray(){
     let i = 0, j = 0;
-    for(let y = 10; y <= 410; y += BLOCKSIZE){
-        for(let x = 10; x <= 210; x += BLOCKSIZE){
+    for(let y = gameboardY + 1; y <= gameboardY + 402; y += BLOCKSIZE){
+        for(let x = gameboardX + 1; x <= gameboardX + 202; x += BLOCKSIZE){
             coordinateArray[i][j] = new Coordinates(x,y);
             i++;
         }
@@ -518,6 +533,6 @@ function CreateCoordArray(){
 
 
 let bag = new Bag();
-// draw = new Draw();
+let preview = new Preview();
 document.addEventListener('DOMContentLoaded', Draw.Setup);
 
