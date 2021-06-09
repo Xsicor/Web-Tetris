@@ -2,9 +2,9 @@ let canvas;
 let ctx;
 const gBArrayHeight = 20; // Number of cells in array height
 const gBArrayWidth = 10; // Number of cells in array width
-const gameboardX = 115;
+const gameboardX = 175;
 const gameboardY = 20;
-const BLOCKSIZE = 20;
+const BLOCKSIZE = 30;
 
 const MOVELEFT = 37;
 const MOVERIGHT = 39;
@@ -294,7 +294,7 @@ class Draw{
         canvas.height = 650;
 
         // Double the size of elements to fit the screen
-        ctx.scale(1.5, 1.5);
+        // ctx.scale(1.5, 1.5);
 
         this.ClearCanvas();
         this.DrawGridLines();
@@ -313,15 +313,15 @@ class Draw{
         ctx.strokeStyle = 'grey';
         ctx.beginPath();
         
-        for(let i = gameboardX + BLOCKSIZE + 1; i < gameboardX + 202 - BLOCKSIZE; i += BLOCKSIZE){
+        for(let i = gameboardX + BLOCKSIZE + 1; i < gameboardX + 302 - BLOCKSIZE; i += BLOCKSIZE){
             ctx.moveTo(i, gameboardY);
-            ctx.lineTo(i, gameboardY + 402);
+            ctx.lineTo(i, gameboardY + 602);
             ctx.stroke();
         }
     
-        for(let i = gameboardY + BLOCKSIZE + 1; i < gameboardY + 402 - BLOCKSIZE; i += BLOCKSIZE){
+        for(let i = gameboardY + BLOCKSIZE + 1; i < gameboardY + 602 - BLOCKSIZE; i += BLOCKSIZE){
             ctx.moveTo(gameboardX, i);
-            ctx.lineTo(gameboardX + 202, i);
+            ctx.lineTo(gameboardX + 302, i);
             ctx.stroke();
         }
     }
@@ -364,7 +364,7 @@ class Draw{
         
         // Draw gameboard rectangle
         ctx.strokeStyle = 'white';
-        ctx.strokeRect(gameboardX, gameboardY, 202, 402);
+        ctx.strokeRect(gameboardX, gameboardY, 302, 602);
     }
 
     static DrawGhostPiece(){
@@ -471,10 +471,9 @@ class Draw{
     static DrawLinesCleared(){
         ctx.fillStyle = 'grey';
         ctx.font = '10px Arial'
-        ctx.fillText('Lines Cleared', 40, 370);
+        ctx.fillText('Lines Cleared', 80, 560);
         ctx.font = '20px Arial';
-        ctx.fillText(Logic.linesCleared + '/40', 50, 400);
-        console.log('test');
+        ctx.fillText(Logic.linesCleared + '/40', 90, 590);
     }
 }
 
@@ -1245,8 +1244,8 @@ function Shuffle(a) {
 
 function CreateCoordArray(){
     let i = 0, j = 0;
-    for(let y = gameboardY + 1; y <= gameboardY + 402; y += BLOCKSIZE){
-        for(let x = gameboardX + 1; x <= gameboardX + 202; x += BLOCKSIZE){
+    for(let y = gameboardY + 1; y <= gameboardY + 602; y += BLOCKSIZE){
+        for(let x = gameboardX + 1; x <= gameboardX + 302; x += BLOCKSIZE){
             coordinateArray[i][j] = new Coordinates(x,y);
             i++;
         }
