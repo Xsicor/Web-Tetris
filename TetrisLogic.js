@@ -31,14 +31,6 @@ let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fil
 // It will hold colors when a shape stops and is added
 let placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
 
-
-let DIRECTION = {
-    IDLE: 0,
-    DOWN: 1,
-    LEFT: 2,
-    RIGHT: 3
-};
-
 let S = [['.....',
           '..00.',
           '.00..',
@@ -427,7 +419,7 @@ class Logic{
         CreateCoordArray();
         currentPiece = bag.Next();
         Logic.DrawBlocks();
-        startTimer();
+        sprintTimer.startTimer();
         gameStart = true;
     }
 
@@ -1023,6 +1015,40 @@ class Logic{
     }
 }
 
+class Timer{
+    constructor(){
+        this.startTime;
+        this.tInterval;
+        this.paused = true;
+        this.running = false;
+        this.minutes = 0;
+        this.seconds = 0;
+        this.difference = 0
+        this.milliseconds = 0;
+    }
+
+    startTimer = () =>{
+        this.startTime = new Date().getTime();
+        this.tInterval = setInterval(this.UpdateTimer, 1);
+        this.paused = false;
+        this.running = true;
+    }
+
+    UpdateTimer = () =>{
+        let updatedTime = new Date().getTime();
+        this.difference =  updatedTime - this.startTime;
+
+        this.minutes = Math.floor((this.difference % (1000 * 60 * 60)) / (1000 * 60));
+        this.seconds = Math.floor((this.difference % (1000 * 60)) / 1000);
+        this.milliseconds = Math.floor(this.difference % 1000);
+
+        this.minutes = (this.minutes < 10) ? "0" + this.minutes : this.minutes;
+        this.seconds = (this.seconds < 10) ? "0" + this.seconds : this.seconds;
+        this.milliseconds = (this.milliseconds < 100) ? (this.milliseconds < 10) ? "00" + this.milliseconds : "0" + this.milliseconds : this.milliseconds;
+        timerDisplay.innerHTML = this.minutes + ':' + this.seconds + ':' + this.milliseconds;
+    }
+}
+
 function Shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
@@ -1046,32 +1072,8 @@ function CreateCoordArray(){
     }
 } 
 
-function startTimer(){
-    if(!running){
-        startTime = new Date().getTime();
-        tInterval = setInterval(getShowTime, 1);
-   
-        paused = 0;
-        running = 1;
-    }
-}
-
-function getShowTime(){
-    updatedTime = new Date().getTime();
-    difference =  updatedTime - startTime;
-
-    var minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    var seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    var milliseconds = Math.floor((difference % (1000 * 60)) / 1);
-    milliseconds = milliseconds % 1000;
-
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-    milliseconds = (milliseconds < 100) ? (milliseconds < 10) ? "00" + milliseconds : "0" + milliseconds : milliseconds;
-    timerDisplay.innerHTML = minutes + ':' + seconds + ':' + milliseconds;
-}
-  
 let bag = new Bag();
 let preview = new Preview();
+let sprintTimer = new Timer();
 document.addEventListener('DOMContentLoaded', Draw.Setup);
 
