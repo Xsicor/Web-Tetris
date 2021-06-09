@@ -16,11 +16,15 @@ const ROTATE180 = 32;
 const HOLD = 67;
 const STARTSPRINT = 70;
 
+let das = 117;
+let arr = 0;
 let previewNo = 5;
 let holdPiece = null;
 let currentPiece;
 let linesCleared;
 let gameStart = false;
+let autoRepeatRateHandler;
+let fall;
 
 var timerDisplay = document.getElementById('timer');
 
@@ -166,6 +170,56 @@ let T = [['.....',
 let shapes = [S, Z, I, O, J, L, T];
 let shape_colors = [[0, 255, 0], [255, 0, 0], [0, 255, 255], [255, 255, 0], [0, 0, 255], [255, 165, 0], [128, 0, 128]];
 
+class Timer{
+    constructor(functionCheck){
+        this.startTime;
+        this.tInterval;
+        this.paused = true;
+        this.running = false;
+        this.minutes = 0;
+        this.seconds = 0;
+        this.difference = 0
+        this.milliseconds = 0;
+        this.functionCheck = functionCheck;
+    }
+
+    Reset = () =>{
+        clearInterval(this.tInterval);
+        this.paused = true;
+        this.running = false;
+        this.difference = 0;
+        this.milliseconds = 0;
+        this.seconds = 0;
+        this.minutes = 0;
+    }
+
+    Start = () =>{
+        this.startTime = new Date().getTime();
+        this.tInterval = setInterval(this.Update, 1);
+        this.paused = false;
+        this.running = true;
+    }
+
+    Stop = () =>{
+        clearInterval(this.tInterval);
+    }
+
+    Update = () =>{
+        let updatedTime = new Date().getTime();
+        this.difference =  updatedTime - this.startTime;
+
+        this.minutes = Math.floor((this.difference % (1000 * 60 * 60)) / (1000 * 60));
+        this.seconds = Math.floor((this.difference % (1000 * 60)) / 1000);
+        this.milliseconds = Math.floor((this.difference % (1000 * 60)) / 1);
+        this.milliseconds = this.milliseconds % 1000;
+
+        this.minutes = (this.minutes < 10) ? "0" + this.minutes : this.minutes;
+        this.seconds = (this.seconds < 10) ? "0" + this.seconds : this.seconds;
+        this.milliseconds = (this.milliseconds < 100) ? (this.milliseconds < 10) ? "00" + this.milliseconds : "0" + this.milliseconds : this.milliseconds;
+        this.functionCheck(this.milliseconds);
+    }
+}
+
 class Coordinates{
     constructor(x, y){
         this.x = x;
@@ -248,6 +302,11 @@ class Draw{
         let sprintButton = document.getElementById('sprint');
         sprintButton.addEventListener('click', Logic.StartGameDelay);
         document.addEventListener('keydown', Logic.HandleKeyPress);
+        document.addEventListener('keyup', Logic.HandleKeyUp);
+    }
+
+    static DrawTimer(){
+        timerDisplay.innerHTML = this.minutes + ':' + this.seconds + ':' + this.milliseconds;
     }
     
     static DrawGridLines(){
@@ -408,35 +467,120 @@ class Draw{
             
         }
     }
+
+    static DrawLinesCleared(){
+        ctx.fillStyle = 'grey';
+        ctx.font = '10px Arial'
+        ctx.fillText('Lines Cleared', 40, 370);
+        ctx.font = '20px Arial';
+        ctx.fillText(Logic.linesCleared + '/40', 50, 400);
+        console.log('test');
+    }
 }
 
 class Logic{
     static placePiece;
     static canHold = true; 
+    static leftDas = false;
+    static rightDas = false;
+    static leftKeyHeld = false;
+    static rightKeyHeld = false;
+    static firstKeyHeld = 0; //If both left and right keys held same time
+    static softdropHeld = false;
+    static linesCleared = 0;
 
-    static StartSprint = () =>{
-        this.ResetEverything();
-        CreateCoordArray();
-        currentPiece = bag.Next();
+    static AutoRepeat = () =>{
+        if(this.firstKeyHeld == 0){
+            if(this.leftDas){
+                while(true){
+                    currentPiece.x -= 1;
+                    if (!(this.ValidSpace(currentPiece))){
+                        currentPiece.x += 1;
+                        break;
+                    }
+                }
+            } else if(this.rightDas){
+                while(true){
+                    currentPiece.x += 1;
+                    if (!(this.ValidSpace(currentPiece))){
+                        currentPiece.x -= 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(this.firstKeyHeld == MOVERIGHT){ //Move piece left as left key pressed most recently
+            if(this.leftDas){
+                while(true){
+                    currentPiece.x -= 1;
+                    if (!(this.ValidSpace(currentPiece))){
+                        currentPiece.x += 1;
+                        break;
+                    }
+                }
+            }
+        } else if(this.firstKeyHeld == MOVELEFT){ //Move piece right as right key pressed most recently
+            if(this.rightDas){
+                while(true){
+                    currentPiece.x += 1;
+                    if (!(this.ValidSpace(currentPiece))){
+                        currentPiece.x -= 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if(this.softdropHeld){
+            while(true){
+                currentPiece.y += 1;
+                if (!(Logic.ValidSpace(currentPiece))){
+                    currentPiece.y -= 1;
+                    break;
+                }
+            }
+        }
+
         Logic.DrawBlocks();
-        sprintTimer.startTimer();
-        gameStart = true;
+        return;
     }
 
-    static StartGameDelay = () =>{
-        setTimeout(this.StartSprint, 0);
+    static HandleKeyUp = (key) =>{
+        switch(key.keyCode){
+            case MOVELEFT:
+                this.leftDas = false;
+                this.leftKeyHeld = false;
+                this.firstKeyHeld = 0;
+                leftDasTimer.Reset();
+                break;
+
+            case MOVERIGHT:
+                this.rightDas = false;
+                this.rightKeyHeld = false;
+                this.firstKeyHeld = 0;
+                rightDasTimer.Reset();
+                break;
+
+            case SOFTDROP:
+                this.softdropHeld = false;
+                break;
+            default:
+        }
     }
 
-    static ResetEverything(){
-        bag = new Bag();
-        preview = new Preview();
-        coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
-        placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
-        currentPiece = null;
-        holdPiece = null;
+    static CheckDas = (milliseconds) =>{
+        if(milliseconds >= das){
+            if(this.leftKeyHeld){
+                this.leftDas = true;
+                leftDasTimer.Reset();
+            }
+            if(this.rightKeyHeld){
+                this.rightDas = true;
+                rightDasTimer.Reset();
+            }
+        }
     }
 
-    static HandleKeyPress = (key)=>{
+    static HandleKeyPress = (key) =>{
         if(!(gameStart)){
             if(key.keyCode == STARTSPRINT){
                 Logic.StartGameDelay();
@@ -445,27 +589,45 @@ class Logic{
         }
         switch(key.keyCode){
             case MOVELEFT:
-                currentPiece.x -= 1;
+                if(!(this.leftKeyHeld)){
+                    leftDasTimer.Start();
+                    this.leftKeyHeld = true;
+                    if(this.rightKeyHeld){
+                        this.firstKeyHeld = MOVERIGHT;
+                    }
+                
 
-                if(!(this.ValidSpace(currentPiece))){
-                    currentPiece.x += 1;
+                    currentPiece.x -= 1;
+                    if(!(this.ValidSpace(currentPiece))){
+                        currentPiece.x += 1;
+                    }
                 }
                 break;
             
             case MOVERIGHT:
-                currentPiece.x += 1;
-                
-                if(!(this.ValidSpace(currentPiece))){
-                    currentPiece.x -= 1;
+                if(!(this.rightKeyHeld)){
+                    rightDasTimer.Start();
+                    this.rightKeyHeld = true;
+                    if(this.leftKeyHeld){
+                        this.firstKeyHeld = MOVELEFT;
+                    }
+
+                    currentPiece.x += 1;
+                    if(!(this.ValidSpace(currentPiece))){
+                        currentPiece.x -= 1;
+                    }
                 }
                 break;
             
             case SOFTDROP:
-                while(true){
-                    currentPiece.y += 1;
-                    if (!(Logic.ValidSpace(currentPiece))){
-                        currentPiece.y -= 1;
-                        break;
+                if(!(this.softdropHeld)){
+                    this.softdropHeld = true;
+                    while(true){
+                        currentPiece.y += 1;
+                        if (!(Logic.ValidSpace(currentPiece))){
+                            currentPiece.y -= 1;
+                            break;
+                        }
                     }
                 }
                 break;
@@ -523,6 +685,38 @@ class Logic{
             Logic.canHold = true;
         }
         this.DrawBlocks();
+    }
+
+    static Fall(){
+        currentPiece.y += 1;
+        if(!(Logic.ValidSpace(currentPiece))){
+            currentPiece.y -= 1;
+        }
+    }
+
+    static StartSprint = () =>{
+        this.ResetEverything();
+        CreateCoordArray();
+        currentPiece = bag.Next();
+        Logic.DrawBlocks();
+        sprintTimer.Start();
+        gameStart = true;
+        autoRepeatRateHandler = setInterval(Logic.AutoRepeat, 1);
+        fall = setInterval(Logic.Fall, 750);
+        this.linesCleared = 0;
+    }
+
+    static StartGameDelay = () =>{
+        setTimeout(this.StartSprint, 0);
+    }
+
+    static ResetEverything(){
+        bag = new Bag();
+        preview = new Preview();
+        coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
+        placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
+        currentPiece = null;
+        holdPiece = null;
     }
 
     static SRS(clockwise){
@@ -918,15 +1112,36 @@ class Logic{
 
         return positions;
     }
+
+    static CheckLoss(piecePosition){ //TODO Fix check 
+        for(let i = 0; i < piecePosition.length; i++){
+            if(piecePosition[i][1] < -1){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static EndGame(){
+        sprintTimer.Stop();
+        clearInterval(autoRepeatRateHandler);
+        clearInterval(fall);
+        gameStart = false;
+        leftDasTimer.Reset();
+        rightDasTimer.Reset();
+    }
     
-    static ChangePiece(){
+    static ChangePiece = () =>{
         let piecePosition = Logic.ConvertToCoordinates(currentPiece);
         for(const position of piecePosition){
             placedPiecesArray[position[1]][position[0]] = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
         }
 
         currentPiece = preview.Next();
-        Logic.ClearRows();
+        this.linesCleared += Logic.ClearRows();
+        if(this.linesCleared >= 40){
+            this.EndGame();
+        }
     }
 
     static ValidSpace(piece){
@@ -961,6 +1176,7 @@ class Logic{
         Draw.DrawCurrentPiece();
         Draw.DrawPreview();
         Draw.DrawHold();
+        Draw.DrawLinesCleared();
     }
 
     static ClearRows(){
@@ -989,6 +1205,7 @@ class Logic{
                 }
             }
         }
+        return lines;
     }
 
     static Hold(){
@@ -1012,40 +1229,6 @@ class Logic{
             holdPiece.y = 2;
         }
         holdPiece.rotation = 0;
-    }
-}
-
-class Timer{
-    constructor(){
-        this.startTime;
-        this.tInterval;
-        this.paused = true;
-        this.running = false;
-        this.minutes = 0;
-        this.seconds = 0;
-        this.difference = 0
-        this.milliseconds = 0;
-    }
-
-    startTimer = () =>{
-        this.startTime = new Date().getTime();
-        this.tInterval = setInterval(this.UpdateTimer, 1);
-        this.paused = false;
-        this.running = true;
-    }
-
-    UpdateTimer = () =>{
-        let updatedTime = new Date().getTime();
-        this.difference =  updatedTime - this.startTime;
-
-        this.minutes = Math.floor((this.difference % (1000 * 60 * 60)) / (1000 * 60));
-        this.seconds = Math.floor((this.difference % (1000 * 60)) / 1000);
-        this.milliseconds = Math.floor(this.difference % 1000);
-
-        this.minutes = (this.minutes < 10) ? "0" + this.minutes : this.minutes;
-        this.seconds = (this.seconds < 10) ? "0" + this.seconds : this.seconds;
-        this.milliseconds = (this.milliseconds < 100) ? (this.milliseconds < 10) ? "00" + this.milliseconds : "0" + this.milliseconds : this.milliseconds;
-        timerDisplay.innerHTML = this.minutes + ':' + this.seconds + ':' + this.milliseconds;
     }
 }
 
@@ -1074,6 +1257,8 @@ function CreateCoordArray(){
 
 let bag = new Bag();
 let preview = new Preview();
-let sprintTimer = new Timer();
+let sprintTimer = new Timer(Draw.DrawTimer);
+leftDasTimer = new Timer(Logic.CheckDas);
+rightDasTimer = new Timer(Logic.CheckDas);
 document.addEventListener('DOMContentLoaded', Draw.Setup);
 
