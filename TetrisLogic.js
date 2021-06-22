@@ -6,17 +6,17 @@ const gameboardX = 175;
 const gameboardY = 20;
 const BLOCKSIZE = 30;
 
-const MOVELEFT = 37;
-const MOVERIGHT = 39;
-const HARDDROP = 38;
-const SOFTDROP = 40;
-const ROTATECLOCKWISE = 88;
-const ROTATECOUNTER = 90;
-const ROTATE180 = 32;
-const HOLD = 67;
-const STARTSPRINT = 70;
+let MOVELEFT = 'ArrowLeft';
+let MOVERIGHT = 'ArrowRight';
+let HARDDROP = 'ArrowUp';
+let SOFTDROP = 'ArrowDown';
+let ROTATECLOCKWISE = 'KeyX';
+let ROTATECOUNTER = 'KeyZ';
+let ROTATE180 = 32;
+let HOLD = 'KeyC';
+let STARTSPRINT = 'KeyF';
 
-let das = 117;
+let das = 100;
 let arr = 0;
 let previewNo = 5;
 let holdPiece = null;
@@ -27,6 +27,8 @@ let autoRepeatRateHandler;
 let fall;
 
 var timerDisplay = document.getElementById('timer');
+let settingsMenu = document.getElementById('settingsMenu');
+let settingsForm = document.getElementById('settingsForm');
 
 let running = 0;
 let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
@@ -293,16 +295,13 @@ class Draw{
         canvas.width = 650;
         canvas.height = 650;
 
-        // Double the size of elements to fit the screen
-        // ctx.scale(1.5, 1.5);
-
         this.ClearCanvas();
         this.DrawGridLines();
 
         let sprintButton = document.getElementById('sprint');
         sprintButton.addEventListener('click', Logic.StartGameDelay);
-        document.addEventListener('keydown', Logic.HandleKeyPress);
-        document.addEventListener('keyup', Logic.HandleKeyUp);
+        let settingsButton = document.getElementById('settings');
+        settingsButton.addEventListener('click', Settings.Display);
     }
 
     static DrawTimer(){
@@ -544,7 +543,7 @@ class Logic{
     }
 
     static HandleKeyUp = (key) =>{
-        switch(key.keyCode){
+        switch(key.code){
             case MOVELEFT:
                 this.leftDas = false;
                 this.leftKeyHeld = false;
@@ -567,7 +566,8 @@ class Logic{
     }
 
     static CheckDas = (milliseconds) =>{
-        if(milliseconds >= das){
+        let truncatedMilliseconds = parseInt(milliseconds, 10);
+        if(truncatedMilliseconds >= das){
             if(this.leftKeyHeld){
                 this.leftDas = true;
                 leftDasTimer.Reset();
@@ -580,13 +580,13 @@ class Logic{
     }
 
     static HandleKeyPress = (key) =>{
-        if(!(gameStart)){
-            if(key.keyCode == STARTSPRINT){
-                Logic.StartGameDelay();
-            }
-            return;
-        }
-        switch(key.keyCode){
+        // if(!(gameStart)){
+        //     if(key.keyCode == STARTSPRINT){
+        //         Logic.StartGameDelay();
+        //     }
+        //     return;
+        // }
+        switch(key.code){
             case MOVELEFT:
                 if(!(this.leftKeyHeld)){
                     leftDasTimer.Start();
@@ -595,7 +595,6 @@ class Logic{
                         this.firstKeyHeld = MOVERIGHT;
                     }
                 
-
                     currentPiece.x -= 1;
                     if(!(this.ValidSpace(currentPiece))){
                         currentPiece.x += 1;
@@ -703,6 +702,8 @@ class Logic{
         autoRepeatRateHandler = setInterval(Logic.AutoRepeat, 1);
         fall = setInterval(Logic.Fall, 750);
         this.linesCleared = 0;
+        document.addEventListener('keydown', Logic.HandleKeyPress);
+        document.addEventListener('keyup', Logic.HandleKeyUp);
     }
 
     static StartGameDelay = () =>{
@@ -716,6 +717,9 @@ class Logic{
         placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
         currentPiece = null;
         holdPiece = null;
+        clearInterval(autoRepeatRateHandler);
+        clearInterval(fall);
+        sprintTimer.Reset();
     }
 
     static SRS(clockwise){
@@ -1128,6 +1132,8 @@ class Logic{
         gameStart = false;
         leftDasTimer.Reset();
         rightDasTimer.Reset();
+        document.removeEventListener('keydown', Logic.HandleKeyPress)
+        document.removeEventListener('keyup', Logic.HandleKeyUp)
     }
     
     static ChangePiece = () =>{
@@ -1231,7 +1237,95 @@ class Logic{
     }
 }
 
-function Shuffle(a) {
+class Settings{
+    static newKey = '';
+    static bindingToChange = '';
+
+    static Display = () =>{
+        settingsMenu.style.display = "block";
+        settingsForm.addEventListener('submit', this.Submit);
+        document.getElementById('DAS').value = das;
+        document.getElementById('ARR').value = arr;
+        document.getElementById('hardDrop').value = HARDDROP;
+        document.getElementById('hardDrop').addEventListener('click', this.GetKey);
+        document.getElementById('softDrop').value = SOFTDROP;
+        document.getElementById('softDrop').addEventListener('click', this.GetKey);
+        document.getElementById('moveLeft').value = MOVELEFT;
+        document.getElementById('moveLeft').addEventListener('click', this.GetKey);
+        document.getElementById('moveRight').value = MOVERIGHT;
+        document.getElementById('moveRight').addEventListener('click', this.GetKey);
+        document.getElementById('clockwise').value = ROTATECLOCKWISE;
+        document.getElementById('clockwise').addEventListener('click', this.GetKey);
+        document.getElementById('counterClockwise').value = ROTATECOUNTER;
+        document.getElementById('counterClockwise').addEventListener('click', this.GetKey);
+        document.getElementById('hold').value = HOLD;
+        document.getElementById('hold').addEventListener('click', this.GetKey);
+    }
+
+    static GetKey = (event) =>{
+        document.addEventListener('keydown', this.ChangeBinding);
+        this.bindingToChange = event.currentTarget.id;
+        event.currentTarget.style.backgroundColor = "yellow";
+    }
+
+    static ChangeBinding = (key, action) =>{
+        this.newKey = key.code;
+        document.removeEventListener('keydown', this.ChangeBinding);
+
+        switch(this.bindingToChange){
+            case 'hardDrop':
+                HARDDROP = this.newKey;
+                document.getElementById('hardDrop').value = HARDDROP;
+                document.getElementById('hardDrop').style.backgroundColor = 'white';
+                break;
+
+            case 'softDrop':
+                SOFTDROP = this.newKey;
+                document.getElementById('softDrop').value = SOFTDROP;
+                document.getElementById('softDrop').style.backgroundColor = 'white';
+                break;
+
+            case 'moveLeft':
+                MOVELEFT = this.newKey;
+                document.getElementById('moveLeft').value = MOVELEFT;
+                document.getElementById('moveLeft').style.backgroundColor = 'white';
+                break;
+
+            case 'moveRight':
+                MOVERIGHT = this.newKey;
+                document.getElementById('moveRight').value = MOVERIGHT;
+                document.getElementById('moveRight').style.backgroundColor = 'white';
+                break;
+
+            case 'clockwise':
+                ROTATECLOCKWISE = this.newKey;
+                document.getElementById('clockwise').value = ROTATECLOCKWISE;
+                document.getElementById('clockwise').style.backgroundColor = 'white';
+                break;
+
+            case 'counterClockwise':
+                ROTATECOUNTER = this.newKey;
+                document.getElementById('counterClockwise').value = ROTATECOUNTER;
+                document.getElementById('counterClockwise').style.backgroundColor = 'white';
+                break;
+
+            case 'hold':
+                HOLD = this.newKey;
+                document.getElementById('hold').value = HOLD;
+                document.getElementById('hold').style.backgroundColor = 'white';
+                break;
+        }
+    }
+
+    static Submit(event){
+        settingsMenu.style.display = 'none';
+        event.preventDefault();
+        das = document.getElementById('DAS').value
+        arr = document.getElementById('ARR').value
+    }
+}
+
+function Shuffle(a){
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
         j = Math.floor(Math.random() * (i + 1));
@@ -1257,7 +1351,7 @@ function CreateCoordArray(){
 let bag = new Bag();
 let preview = new Preview();
 let sprintTimer = new Timer(Draw.DrawTimer);
-leftDasTimer = new Timer(Logic.CheckDas);
-rightDasTimer = new Timer(Logic.CheckDas);
+let leftDasTimer = new Timer(Logic.CheckDas);
+let rightDasTimer = new Timer(Logic.CheckDas);
 document.addEventListener('DOMContentLoaded', Draw.Setup);
 

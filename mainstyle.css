@@ -1,5 +1,18 @@
 body {
     background: #111;
+    color: #fff;
+}
+
+.flex-container {
+    display: flex;
+    position:relative;
+}
+
+#settingsMenu {
+    display: none;
+    top: 100px;
+    left: 400px;
+    position: absolute;
 }
 
 #my-canvas {
@@ -9,19 +22,18 @@ body {
 .canvasWrapper {
 	width: 650px;
 
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-	margin: auto;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);               
 }
 
 #options {
     text-align: center;
+    top: 700px;
+    position: relative;
 }
 
-#sprint {
-    margin-top: 50px;
+.options-button {
     letter-spacing: 2px;
     border: 1px solid #ab2020;
     color: #fff;
@@ -32,18 +44,22 @@ body {
     height: 40px;
 }
 
-#sprint:hover {
+.options-button:hover {
     background: #ab2020;
     cursor: pointer;
+}
+
+#settings {
+    border: 1px solid #0049d1;
+    width: 100px;
+}
+
+#settings:hover {
+    background: #0049d1;
 }
 
 #timer {
     color: grey;
     text-align: center;
-    /* margin-right: 45px; */
     text-align: center;
 }
-
-/* html, body {
-    overflow:hidden;
-} */

@@ -7,12 +7,30 @@
         <link rel="stylesheet" type="text/css" href="mainstyle.css">
     </head>
     <body>
-        <div class=canvasWrapper>
-            <canvas id='myCanvas'></canvas>
-            <div id='timer'>00:00:00</div>
+        <div class="flex-container">
+            <div id='settingsMenu'>
+                <h2>Settings</h2>
+                <form id='settingsForm'>
+                    DAS: <input type="text" id="DAS" size="1" autocomplete='off'><br><br>
+                    ARR: <input type="text" id="ARR" size="1"><br><br>
+                    Hard Drop: <input type="text" id="hardDrop" size="7"><br><br>
+                    Soft Drop: <input type="text" id="softDrop" size="7"><br><br>
+                    Move Left: <input type="text" id="moveLeft" size="7"><br><br>
+                    Move Right: <input type="text" id="moveRight" size="7"><br><br>
+                    Rotate Right: <input type="text" id="clockwise" size="7"><br><br>
+                    Rotate Left: <input type="text" id="counterClockwise" size="7"><br><br>
+                    Hold: <input type="text" id="hold" size="7"><br><br>
+                    <input type="submit" value="Save">
+                </form>
+            </div>
+            <div class=canvasWrapper>
+                <canvas id='myCanvas'></canvas>
+                <div id='timer'>00:00:00</div>
+            </div>
         </div>
         <div id=options>
-            <button id='sprint'>SPRINT</button>
+            <button class='options-button' id='settings'>SETTINGS</button>
+            <button class='options-button' id='sprint'>SPRINT</button>
         </div>
         <script src="TetrisLogic.js"></script>
     </body>
