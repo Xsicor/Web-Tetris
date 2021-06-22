@@ -12,7 +12,7 @@ let HARDDROP = 'ArrowUp';
 let SOFTDROP = 'ArrowDown';
 let ROTATECLOCKWISE = 'KeyX';
 let ROTATECOUNTER = 'KeyZ';
-let ROTATE180 = 32;
+let ROTATE180 = 'Space';
 let HOLD = 'KeyC';
 let STARTSPRINT = 'KeyF';
 
@@ -1260,6 +1260,8 @@ class Settings{
         document.getElementById('counterClockwise').addEventListener('click', this.GetKey);
         document.getElementById('hold').value = HOLD;
         document.getElementById('hold').addEventListener('click', this.GetKey);
+        document.getElementById('resetGame').value = STARTSPRINT;
+        document.getElementById('resetGame').addEventListener('click', this.GetKey);
     }
 
     static GetKey = (event) =>{
@@ -1314,6 +1316,11 @@ class Settings{
                 document.getElementById('hold').value = HOLD;
                 document.getElementById('hold').style.backgroundColor = 'white';
                 break;
+
+            case 'resetGame':
+                STARTSPRINT = this.newKey;
+                document.getElementById('resetGame').value = STARTSPRINT;
+                document.getElementById('resetGame').style.backgroundColor = 'white';
         }
     }
 
