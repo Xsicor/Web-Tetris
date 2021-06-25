@@ -29,6 +29,12 @@ let fall;
 var timerDisplay = document.getElementById('timer');
 let settingsMenu = document.getElementById('settingsMenu');
 let settingsForm = document.getElementById('settingsForm');
+let testCanvas = document.getElementById('testCanvas');
+let testctx = testCanvas.getContext('2d');
+testCanvas.width = 372;
+testCanvas.height = 30;
+
+let currentSkinIMG;
 
 let running = 0;
 let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
@@ -169,8 +175,8 @@ let T = [['.....',
           '..0..',
           '.....']];
 
-let shapes = [S, Z, I, O, J, L, T];
-let shape_colors = [[0, 255, 0], [255, 0, 0], [0, 255, 255], [255, 255, 0], [0, 0, 255], [255, 165, 0], [128, 0, 128]];
+let shapes = [Z, L, O, S, I, J, T];
+let shapeColors = [[255, 0, 0], [255, 165, 0], [255, 255, 0], [0, 255, 0], [0, 255, 255], [0, 0, 255], [128, 0, 128]];
 
 class Timer{
     constructor(functionCheck){
@@ -234,7 +240,7 @@ class Piece{
         this.x = x;
         this.y = y;
         this.shape = shape;
-        this.color = shape_colors[shapes.indexOf(shape)];
+        this.color = shapeColors[shapes.indexOf(shape)];
         this.rotation = 0;
     }
 }
@@ -302,6 +308,22 @@ class Draw{
         sprintButton.addEventListener('click', Logic.StartGameDelay);
         let settingsButton = document.getElementById('settings');
         settingsButton.addEventListener('click', Settings.Display);
+        let currentSkinButton = document.getElementById('currentSkin');
+        currentSkinButton.addEventListener('click', this.ShowCurrentSkin);
+        let loadSkinButton = document.getElementById('loadSkin');
+        loadSkinButton.addEventListener('click', this.ShowCurrentSkin);
+        this.DrawDefaultSkin();
+        currentSkinIMG = testCanvas.toDataURL();
+    }
+
+    static DrawDefaultSkin(){
+        let x = 0;
+        let y = 0;
+        for(let i = 0; i < 7; i++){
+            testctx.fillStyle = 'rgb(' + shapeColors[i][0] + ',' + shapeColors[i][1] + ',' + shapeColors[i][2] + ')';
+            testctx.fillRect(x, y, BLOCKSIZE, BLOCKSIZE);
+            x += 31;
+        }
     }
 
     static DrawTimer(){
@@ -473,6 +495,14 @@ class Draw{
         ctx.fillText('Lines Cleared', 80, 560);
         ctx.font = '20px Arial';
         ctx.fillText(Logic.linesCleared + '/40', 90, 590);
+    }
+
+    static ShowCurrentSkin(){
+        if(testCanvas.style.display == 'none'){
+            testCanvas.style.display = 'block';
+        } else {
+            testCanvas.style.display = 'none';
+        }
     }
 }
 
