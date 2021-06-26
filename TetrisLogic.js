@@ -351,7 +351,7 @@ class Draw{
         }
     }
     
-    static DrawPlacedBlocks(){ //Update to work with image
+    static DrawPlacedBlocks(){
         for(let x = 0; x < placedPiecesArray.length; x++){
             for(let y = 0; y < placedPiecesArray[x].length; y++){
                 if (!(typeof placedPiecesArray[x][y] == "string")) {
@@ -359,8 +359,10 @@ class Draw{
                 }
                 let coorX = coordinateArray[y][x].x;
                 let coorY = coordinateArray[y][x].y;
-                ctx.fillStyle = placedPiecesArray[x][y];
-                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+
+                let sx = parseInt(placedPiecesArray[x][y]) * 31;
+                let sy = 0
+                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             }
         }
     }
@@ -376,8 +378,6 @@ class Draw{
                 let coorY = coordinateArray[x][y].y;
                 let coorX = coordinateArray[x][y].x;
 
-                // ctx.fillStyle = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
-                // ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
                 let sx = shapes.indexOf(currentPiece.shape) * 31;
                 let sy = 0
                 ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
@@ -395,7 +395,7 @@ class Draw{
         ctx.strokeRect(gameboardX, gameboardY, 302, 602);
     }
 
-    static DrawGhostPiece(){ //Update to work with image
+    static DrawGhostPiece(){
         let counter = 0;
         while(true){
             currentPiece.y += 1;
@@ -416,22 +416,21 @@ class Draw{
             if(y > -2){
                 let coorY = coordinateArray[x][y].y;
                 let coorX = coordinateArray[x][y].x;
-                let r = currentPiece.color[0];
-                let g = currentPiece.color[1];
-                let b = currentPiece.color[2];
-                let rt = r + (0.5 * (255 - r));
-                let gt = g + (0.5 * (255 - g))
-                let bt = b + (0.5 * (255 - b))
 
-                ctx.fillStyle = 'rgb(' + rt + ',' + gt + ',' + bt + ')';
-                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                let sx = shapes.indexOf(currentPiece.shape) * 31;
+                let sy = 0
+                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                ctx.globalCompositeOperation = "saturation";
+                ctx.fillStyle = "hsl(0,25%,50%)";  // saturation at 100%
+                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);  // apply the comp filter
+                ctx.globalCompositeOperation = "source-over";  // restore default comp
             }
         }
 
         currentPiece.y -= counter;
     }
 
-    static DrawPreview(){ //Update to work with image
+    static DrawPreview(){
         let coorX;
         let coorY;
 
@@ -457,14 +456,15 @@ class Draw{
                     coorY -= BLOCKSIZE;
                 }
 
-                ctx.fillStyle = 'rgb(' + piece.color[0] + ',' + piece.color[1] + ',' + piece.color[2] + ')';
-                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                let sx = shapes.indexOf(piece.shape) * 31;
+                let sy = 0
+                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
                 
             }
         }
     }
 
-    static DrawHold(){ //Update to work with image
+    static DrawHold(){
         if(holdPiece == null){
             return;
         }
@@ -490,8 +490,9 @@ class Draw{
                 coorX -= BLOCKSIZE;
             }
 
-            ctx.fillStyle = 'rgb(' + holdPiece.color[0] + ',' + holdPiece.color[1] + ',' + holdPiece.color[2] + ')';
-            ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+            let sx = shapes.indexOf(holdPiece.shape) * 31;
+                let sy = 0
+                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             
         }
     }
@@ -1176,7 +1177,7 @@ class Logic{
     static ChangePiece = () =>{
         let piecePosition = Logic.ConvertToCoordinates(currentPiece);
         for(const position of piecePosition){
-            placedPiecesArray[position[1]][position[0]] = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
+            placedPiecesArray[position[1]][position[0]] = shapes.indexOf(currentPiece.shape).toString();
         }
 
         currentPiece = preview.Next();
@@ -1202,7 +1203,7 @@ class Logic{
             if(y == -1 || y == -2){
                 continue;
             }
-            if(!(placedPiecesArray[y][x] == 0)){
+            if(!(placedPiecesArray[y][x] === 0)){
                 return false;
             }
         }
@@ -1381,11 +1382,13 @@ class CustomSkin{
 
     static UpdateCurrentSkin = ()=>{
         this.newSkinFile = fileElem.files[0];
-        const promise = createImageBitmap(this.newSkinFile, 0, 0, 372, 30);
+        // const promise = createImageBitmap(this.newSkinFile, 0, 0, 372, 30);
+        const promise = createImageBitmap(this.newSkinFile);
         const promise2 = promise.then(function(skin){
             testctx.fillStyle = '#111';
             testctx.fillRect(0, 0, 372, 30);
-            testctx.drawImage(skin, 0, 0);
+            // testctx.drawImage(skin, 0, 0);
+            testctx.drawImage(skin, 0, 0, skin.width, skin.height, 0, 0, 372, 30);
         });
     }
 }
