@@ -365,7 +365,7 @@ class Draw{
         }
     }
 
-    static DrawCurrentPiece(){ //Update to work with image
+    static DrawCurrentPiece(){
         let piecePosition = Logic.ConvertToCoordinates(currentPiece);
 
         for(let i = 0; i < piecePosition.length; i++){
@@ -376,8 +376,11 @@ class Draw{
                 let coorY = coordinateArray[x][y].y;
                 let coorX = coordinateArray[x][y].x;
 
-                ctx.fillStyle = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
-                ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                // ctx.fillStyle = 'rgb(' + currentPiece.color[0] + ',' + currentPiece.color[1] + ',' + currentPiece.color[2] + ')';
+                // ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                let sx = shapes.indexOf(currentPiece.shape) * 31;
+                let sy = 0
+                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             }
         }
     }
