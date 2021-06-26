@@ -29,6 +29,9 @@ let fall;
 var timerDisplay = document.getElementById('timer');
 let settingsMenu = document.getElementById('settingsMenu');
 let settingsForm = document.getElementById('settingsForm');
+const fileSelect = document.getElementById("loadSkin"),
+  fileElem = document.getElementById("fileElem");
+
 let testCanvas = document.getElementById('testCanvas');
 let testctx = testCanvas.getContext('2d');
 testCanvas.width = 372;
@@ -310,10 +313,11 @@ class Draw{
         settingsButton.addEventListener('click', Settings.Display);
         let currentSkinButton = document.getElementById('currentSkin');
         currentSkinButton.addEventListener('click', this.ShowCurrentSkin);
-        let loadSkinButton = document.getElementById('loadSkin');
-        loadSkinButton.addEventListener('click', this.ShowCurrentSkin);
+        fileSelect.addEventListener("click", CustomSkin.LoadSkin, false);
+        fileElem.addEventListener("change", CustomSkin.UpdateCurrentSkin);
+        // let loadSkinButton = document.getElementById('loadSkin');
+        // loadSkinButton.addEventListener('click', this.ShowCurrentSkin);
         this.DrawDefaultSkin();
-        currentSkinIMG = testCanvas.toDataURL();
     }
 
     static DrawDefaultSkin(){
@@ -347,7 +351,7 @@ class Draw{
         }
     }
     
-    static DrawPlacedBlocks(){
+    static DrawPlacedBlocks(){ //Update to work with image
         for(let x = 0; x < placedPiecesArray.length; x++){
             for(let y = 0; y < placedPiecesArray[x].length; y++){
                 if (!(typeof placedPiecesArray[x][y] == "string")) {
@@ -361,7 +365,7 @@ class Draw{
         }
     }
 
-    static DrawCurrentPiece(){
+    static DrawCurrentPiece(){ //Update to work with image
         let piecePosition = Logic.ConvertToCoordinates(currentPiece);
 
         for(let i = 0; i < piecePosition.length; i++){
@@ -388,7 +392,7 @@ class Draw{
         ctx.strokeRect(gameboardX, gameboardY, 302, 602);
     }
 
-    static DrawGhostPiece(){
+    static DrawGhostPiece(){ //Update to work with image
         let counter = 0;
         while(true){
             currentPiece.y += 1;
@@ -424,7 +428,7 @@ class Draw{
         currentPiece.y -= counter;
     }
 
-    static DrawPreview(){
+    static DrawPreview(){ //Update to work with image
         let coorX;
         let coorY;
 
@@ -457,7 +461,7 @@ class Draw{
         }
     }
 
-    static DrawHold(){
+    static DrawHold(){ //Update to work with image
         if(holdPiece == null){
             return;
         }
@@ -1359,6 +1363,27 @@ class Settings{
         event.preventDefault();
         das = document.getElementById('DAS').value
         arr = document.getElementById('ARR').value
+    }
+}
+
+class CustomSkin{
+    static newSkinImage;
+    static newSkinFile;
+
+    static LoadSkin(){
+        if (fileElem) {
+            fileElem.click();
+        }
+    }
+
+    static UpdateCurrentSkin = ()=>{
+        this.newSkinFile = fileElem.files[0];
+        const promise = createImageBitmap(this.newSkinFile, 0, 0, 372, 30);
+        const promise2 = promise.then(function(skin){
+            testctx.fillStyle = '#111';
+            testctx.fillRect(0, 0, 372, 30);
+            testctx.drawImage(skin, 0, 0);
+        });
     }
 }
 

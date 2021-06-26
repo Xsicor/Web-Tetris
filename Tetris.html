@@ -24,7 +24,7 @@
                     <input type="submit" value="Save">
                 </form>
             </div>
-            <div class=canvasWrapper>
+            <div class='canvasWrapper'>
                 <canvas id='myCanvas'></canvas>
                 <div id='timer'>00:00:00</div>
             </div>
@@ -32,13 +32,13 @@
             <div class='testCanvasWrapper'>
                 <canvas id='testCanvas'></canvas>
             </div>
-            <canvas id='quickTest'></canvas>
         </div>
         <div id=options>
             <button class='options-button' id='settings'>SETTINGS</button>
             <button class='options-button' id='sprint'>SPRINT</button>
             <button class='options-button' id='currentSkin'>CURRENT SKIN</button>
-            <button class='options-button' id='loadSkin'>LOAD SKIN</button>
+            <input type="file" id="fileElem" accept="image/*" style="display:none">
+            <button class='options-button' id="loadSkin">LOAD SKIN</button>
         </div>
         <script src="TetrisLogic.js"></script>
     </body>
