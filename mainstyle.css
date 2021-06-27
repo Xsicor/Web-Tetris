@@ -15,7 +15,7 @@ body {
     position: absolute;
 }
 
-.testCanvasWrapper {
+.currentSkinCanvasWrapper {
     width: 372px;
     height: 30px;
     position: absolute;
@@ -23,7 +23,7 @@ body {
     top: 800px;
 }
 
-#testCanvas {
+#currentSkinCanvas {
     background-color: transparent;
     width: 372px;
     height: 30px;
@@ -90,6 +90,16 @@ body {
 #loadSkin:hover {
     background: #d32de9cb;
 }
+
+#skinEditor {
+    border: 1px solid #19ebcf;
+    width: 130px;
+}
+
+#skinEditor:hover {
+    background: #19ebcf;
+}
+
 
 #timer {
     color: grey;

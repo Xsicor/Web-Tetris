@@ -32,18 +32,15 @@ let settingsForm = document.getElementById('settingsForm');
 const fileSelect = document.getElementById("loadSkin"),
   fileElem = document.getElementById("fileElem");
 
-let testCanvas = document.getElementById('testCanvas');
-let testctx = testCanvas.getContext('2d');
-testCanvas.width = 372;
-testCanvas.height = 30;
+let currentSkinCanvas = document.getElementById('currentSkinCanvas');
+let currentSkinctx = currentSkinCanvas.getContext('2d');
+currentSkinCanvas.width = 372;
+currentSkinCanvas.height = 30;
 
 let currentSkinIMG;
 
 let running = 0;
 let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
-
-// 6. Array for storing stopped shapes
-// It will hold colors when a shape stops and is added
 let placedPiecesArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
 
 let S = [['.....',
@@ -315,17 +312,22 @@ class Draw{
         currentSkinButton.addEventListener('click', this.ShowCurrentSkin);
         fileSelect.addEventListener("click", CustomSkin.LoadSkin, false);
         fileElem.addEventListener("change", CustomSkin.UpdateCurrentSkin);
-        // let loadSkinButton = document.getElementById('loadSkin');
-        // loadSkinButton.addEventListener('click', this.ShowCurrentSkin);
+
         this.DrawDefaultSkin();
+    }
+
+    static DrawBlock(piece, x, y){
+        let sx = shapes.indexOf(piece.shape) * 31;
+        let sy = 0
+        ctx.drawImage(currentSkinCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, x, y, BLOCKSIZE, BLOCKSIZE);
     }
 
     static DrawDefaultSkin(){
         let x = 0;
         let y = 0;
         for(let i = 0; i < 7; i++){
-            testctx.fillStyle = 'rgb(' + shapeColors[i][0] + ',' + shapeColors[i][1] + ',' + shapeColors[i][2] + ')';
-            testctx.fillRect(x, y, BLOCKSIZE, BLOCKSIZE);
+            currentSkinctx.fillStyle = 'rgb(' + shapeColors[i][0] + ',' + shapeColors[i][1] + ',' + shapeColors[i][2] + ')';
+            currentSkinctx.fillRect(x, y, BLOCKSIZE, BLOCKSIZE);
             x += 31;
         }
     }
@@ -351,7 +353,7 @@ class Draw{
         }
     }
     
-    static DrawPlacedBlocks(){
+    static DrawPlacedBlocks = ()=>{
         for(let x = 0; x < placedPiecesArray.length; x++){
             for(let y = 0; y < placedPiecesArray[x].length; y++){
                 if (!(typeof placedPiecesArray[x][y] == "string")) {
@@ -362,12 +364,12 @@ class Draw{
 
                 let sx = parseInt(placedPiecesArray[x][y]) * 31;
                 let sy = 0
-                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                ctx.drawImage(currentSkinCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
             }
         }
     }
 
-    static DrawCurrentPiece(){
+    static DrawCurrentPiece = ()=>{
         let piecePosition = Logic.ConvertToCoordinates(currentPiece);
 
         for(let i = 0; i < piecePosition.length; i++){
@@ -378,9 +380,7 @@ class Draw{
                 let coorY = coordinateArray[x][y].y;
                 let coorX = coordinateArray[x][y].x;
 
-                let sx = shapes.indexOf(currentPiece.shape) * 31;
-                let sy = 0
-                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                this.DrawBlock(currentPiece, coorX, coorY);
             }
         }
     }
@@ -395,7 +395,7 @@ class Draw{
         ctx.strokeRect(gameboardX, gameboardY, 302, 602);
     }
 
-    static DrawGhostPiece(){
+    static DrawGhostPiece = ()=>{
         let counter = 0;
         while(true){
             currentPiece.y += 1;
@@ -417,9 +417,7 @@ class Draw{
                 let coorY = coordinateArray[x][y].y;
                 let coorX = coordinateArray[x][y].x;
 
-                let sx = shapes.indexOf(currentPiece.shape) * 31;
-                let sy = 0
-                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+                this.DrawBlock(currentPiece, coorX, coorY);
                 ctx.globalCompositeOperation = "saturation";
                 ctx.fillStyle = "hsl(0,25%,50%)";  // saturation at 100%
                 ctx.fillRect(coorX, coorY, BLOCKSIZE, BLOCKSIZE);  // apply the comp filter
@@ -430,7 +428,7 @@ class Draw{
         currentPiece.y -= counter;
     }
 
-    static DrawPreview(){
+    static DrawPreview = ()=>{
         let coorX;
         let coorY;
 
@@ -456,15 +454,12 @@ class Draw{
                     coorY -= BLOCKSIZE;
                 }
 
-                let sx = shapes.indexOf(piece.shape) * 31;
-                let sy = 0
-                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
-                
+                this.DrawBlock(piece, coorX, coorY);
             }
         }
     }
 
-    static DrawHold(){
+    static DrawHold = ()=>{
         if(holdPiece == null){
             return;
         }
@@ -490,9 +485,7 @@ class Draw{
                 coorX -= BLOCKSIZE;
             }
 
-            let sx = shapes.indexOf(holdPiece.shape) * 31;
-                let sy = 0
-                ctx.drawImage(testCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, coorX, coorY, BLOCKSIZE, BLOCKSIZE);
+            this.DrawBlock(holdPiece, coorX, coorY);
             
         }
     }
@@ -506,10 +499,10 @@ class Draw{
     }
 
     static ShowCurrentSkin(){
-        if(testCanvas.style.display == 'none'){
-            testCanvas.style.display = 'block';
+        if(currentSkinCanvas.style.display == 'none'){
+            currentSkinCanvas.style.display = 'block';
         } else {
-            testCanvas.style.display = 'none';
+            currentSkinCanvas.style.display = 'none';
         }
     }
 }
@@ -1382,13 +1375,11 @@ class CustomSkin{
 
     static UpdateCurrentSkin = ()=>{
         this.newSkinFile = fileElem.files[0];
-        // const promise = createImageBitmap(this.newSkinFile, 0, 0, 372, 30);
         const promise = createImageBitmap(this.newSkinFile);
         const promise2 = promise.then(function(skin){
-            testctx.fillStyle = '#111';
-            testctx.fillRect(0, 0, 372, 30);
-            // testctx.drawImage(skin, 0, 0);
-            testctx.drawImage(skin, 0, 0, skin.width, skin.height, 0, 0, 372, 30);
+            currentSkinctx.fillStyle = '#111';
+            currentSkinctx.fillRect(0, 0, 372, 30);
+            currentSkinctx.drawImage(skin, 0, 0, skin.width, skin.height, 0, 0, 372, 30);
         });
     }
 }
