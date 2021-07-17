@@ -38,6 +38,8 @@ currentSkinCanvas.width = 372;
 currentSkinCanvas.height = 30;
 
 let currentSkinIMG;
+let app;
+
 
 let running = 0;
 let coordinateArray = [...Array(gBArrayHeight)].map(e => Array(gBArrayWidth).fill(0));
@@ -301,19 +303,30 @@ class Draw{
         canvas.width = 650;
         canvas.height = 650;
 
+        document.getElementById('currentEditedBlock').width = 120;
+        document.getElementById('currentEditedBlock').height = 60;
+
+        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        for(let i = 0; i < editorSkin.length; i++){
+            editorSkin[i].width = 30;
+            editorSkin[i].height = 30;
+            editorSkin[i].addEventListener('click', SkinEditor.ChangeBlock);
+        }
+
         this.ClearCanvas();
         this.DrawGridLines();
 
-        let sprintButton = document.getElementById('sprint');
-        sprintButton.addEventListener('click', Logic.StartGameDelay);
-        let settingsButton = document.getElementById('settings');
-        settingsButton.addEventListener('click', Settings.Display);
-        let currentSkinButton = document.getElementById('currentSkin');
-        currentSkinButton.addEventListener('click', this.ShowCurrentSkin);
+        document.getElementById('sprint').addEventListener('click', Logic.StartGameDelay);
+        document.getElementById('settings').addEventListener('click', Settings.Display);
+        document.getElementById('currentSkin').addEventListener('click', this.ShowCurrentSkin);
         fileSelect.addEventListener("click", CustomSkin.LoadSkin, false);
         fileElem.addEventListener("change", CustomSkin.UpdateCurrentSkin);
-
+        document.getElementById('skinEditor').addEventListener('click', SkinEditor.Click);
+        document.getElementById('saveSkin').addEventListener('click', SkinEditor.SaveSkin);
+        document.getElementById('cancelSkin').addEventListener('click', SkinEditor.ExitEditor);
+        
         this.DrawDefaultSkin();
+        document.getElementById('editor').appendChild(startPixelEditor({}));
     }
 
     static DrawBlock(piece, x, y){
@@ -507,6 +520,131 @@ class Draw{
     }
 }
 
+class SkinEditor{
+
+    static coordinates;
+    static skinBlockctx;
+    static shapesIndex;
+    
+    static Click = ()=>{
+        this.coordinates = [[1,0], [2,0], [2,1], [3,1]];
+        this.skinBlockctx = document.getElementById('zBlock').getContext('2d');
+        document.getElementById('skinEditor').disabled = true;
+        document.getElementById('editorWrapper').style.display = 'block'
+        this.DrawSkin();
+        this.DrawBlockCanvas();
+        this.DrawEditedBlock();
+    }
+
+    static DrawBlockCanvas(){
+        let blockPicture = CreateBlockPicture(this.skinBlockctx);
+        let state = app.state;
+        state.picture = blockPicture;
+        app.syncState(state);
+    }
+
+    static SaveSkin = ()=>{
+        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        let sy = 0;
+        for(let i = 0; i < editorSkin.length; i++){
+            let sx = i * 31;
+            currentSkinctx.drawImage(editorSkin[i], 0, 0, BLOCKSIZE, BLOCKSIZE, sx, sy, BLOCKSIZE, BLOCKSIZE);
+        }
+        this.ExitEditor();
+    }
+
+    static ExitEditor(){
+        document.getElementById('skinEditor').disabled = false;
+        document.getElementById('editorWrapper').style.display = 'none'
+    }
+
+    static DrawEditedBlock = ()=>{
+        for(let i = 0; i < 4; i++){
+            document.getElementById('currentEditedBlock').getContext('2d').drawImage(
+                this.skinBlockctx.canvas, 0, 0, BLOCKSIZE, BLOCKSIZE, this.coordinates[i][0] * BLOCKSIZE, this.coordinates[i][1] * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE);
+        }
+    }
+
+    static ChangeBlock = (e)=>{
+        let blockName = e.target.id;
+        document.getElementById('currentEditedBlock').getContext('2d').clearRect(0, 0, 120, 60);
+        console.log(blockName);
+        switch(blockName) {
+            case 'zBlock':
+                this.skinBlockctx = document.getElementById('zBlock').getContext('2d');
+                this.coordinates = [[1,0], [2,0], [2,1], [3,1]];
+                break;
+            
+            case 'lBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('lBlock').getContext('2d');
+                this.coordinates = [[3,0], [3,1], [2,1], [1,1]];
+                break;
+            
+            case 'oBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('oBlock').getContext('2d');
+                this.coordinates = [[1,0], [2,0], [1,1], [2,1]];
+                break;
+
+            case 'sBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('sBlock').getContext('2d');
+                this.coordinates = [[2,0], [1,0], [1,1], [0,1]];
+                break;
+
+            case 'iBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('iBlock').getContext('2d');
+                this.coordinates = [[0,1], [1,1], [2,1], [3,1]];
+                break;
+
+            case 'jBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('jBlock').getContext('2d');
+                this.coordinates = [[1,0], [3,1], [2,1], [1,1]];
+                break;
+
+            case 'tBlock':
+                console.log('running');
+                this.skinBlockctx = document.getElementById('tBlock').getContext('2d');
+                this.coordinates = [[2,0], [1,1], [2,1], [3,1]];
+                break;
+            
+        }
+        this.DrawBlockCanvas();
+        this.DrawEditedBlock();
+    }
+
+    static updateEditedBlock = (pixels)=>{
+        for (let {x, y, color} of pixels) {
+            for(let i = 0; i < 4; i++){
+                let newX = (this.coordinates[i][0] * BLOCKSIZE) + x;
+                let newY = (this.coordinates[i][1] * BLOCKSIZE) + y;
+                document.getElementById('currentEditedBlock').getContext('2d').fillStyle = color;
+                document.getElementById('currentEditedBlock').getContext('2d').fillRect(newX, newY, 1, 1);
+            }
+        }
+    }
+
+    static updateSkin = (pixels)=>{
+        for (let {x, y, color} of pixels) {
+            this.skinBlockctx.fillStyle = color;
+            this.skinBlockctx.fillRect(x, y, 1, 1);
+        }
+    }
+
+    static DrawSkin(){
+        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        let sy = 0;
+        for(let i = 0; i < editorSkin.length; i++){
+            let sx = i * 31;
+            editorSkin[i].getContext('2d').drawImage(
+                currentSkinCanvas, sx, sy, BLOCKSIZE, BLOCKSIZE, 0, 0, BLOCKSIZE, BLOCKSIZE)
+        }
+    }
+}
+
 class Logic{
     static placePiece;
     static canHold = true; 
@@ -611,12 +749,6 @@ class Logic{
     }
 
     static HandleKeyPress = (key) =>{
-        // if(!(gameStart)){
-        //     if(key.keyCode == STARTSPRINT){
-        //         Logic.StartGameDelay();
-        //     }
-        //     return;
-        // }
         switch(key.code){
             case MOVELEFT:
                 if(!(this.leftKeyHeld)){
@@ -1414,3 +1546,501 @@ let leftDasTimer = new Timer(Logic.CheckDas);
 let rightDasTimer = new Timer(Logic.CheckDas);
 document.addEventListener('DOMContentLoaded', Draw.Setup);
 
+class Picture {
+  constructor(width, height, pixels) {
+    this.width = width;
+    this.height = height;
+    this.pixels = pixels;
+  }
+  
+  static empty(width, height, color) {
+    let pixels = new Array(width*height).fill(color);
+    return new Picture(width, height, pixels);
+  }
+  
+  pixel(x,y) {
+    return this.pixels[x + y * this.width];
+  }
+  
+  draw(pixels) {
+    let copy = this.pixels.slice();
+    for (let {x, y, color} of pixels) {
+      copy[x + y * this.width] = color;
+    }
+    SkinEditor.updateEditedBlock(pixels);
+    SkinEditor.updateSkin(pixels);
+    return new Picture(this.width, this.height, copy);
+  }
+}
+
+// STATE MANAGEMENT BEGIN
+// function introduced early in the chapter but made irrelevant by later extension of Undo Control.
+// function updateState(state, action) {
+//   return Object.assign({}, state, action);
+// }
+
+function historyUpdateState(state, action) {
+  if (action.undo == true) {
+    if (state.done.length == 0) return state;
+    return Object.assign({}, state, {
+      picture: state.done[0],
+      done: state.done.slice(1),
+      doneAt: 0
+    });
+  } else if (action.picture &&
+            state.doneAt < Date.now() - 1000) {
+    return Object.assign({}, state, action, {
+      done: [state.picture, ...state.done],
+      doneAt: Date.now()
+    });
+  } else {
+    return Object.assign({}, state, action);
+  }
+}
+// STATE MANAGEMENT END
+
+// helper function to quickly create and insert dom nodes
+function elt(type, props, ...children) {
+  let dom = document.createElement(type);
+  
+  if (props) Object.assign(dom, props);
+  
+  for (let child of children) {
+    if (typeof child != "string") dom.appendChild(child);
+    else dom.appendChild(document.createTextNode(child));
+  }
+  
+  return dom;
+}
+
+const scale = 10;
+
+class PictureCanvas {
+  constructor(picture, pointerDown) {
+    this.dom = elt("canvas", {
+      onmousedown: event => this.mouse(event, pointerDown),
+      ontouchstart: event => this.touch(event, pointerDown)
+    });
+    this.syncState(picture);
+  }
+  
+  syncState(picture) {
+    if (this.picture == picture) return;
+    drawPicture(picture, this.dom, scale, this.picture);
+  }
+  
+  mouse(downEvent, onDown) {
+    if (downEvent.button != 0) return;
+    
+    let pos = pointerPosition(downEvent, this.dom);
+    let onMove = onDown(pos);
+    
+    if (!onMove) return;
+    
+    let move = moveEvent => {
+      if (moveEvent.buttons == 0) {
+        this.dom.removeEventListener('mousemove', move)
+      } else {
+        let newPos = pointerPosition(moveEvent, this.dom);
+        if (newPos.x == pos.x && newPos.y == pos.y) return;
+        
+        pos = newPos;
+        onMove(newPos);
+      }
+    };
+    
+    this.dom.addEventListener('mousemove', move);
+  }
+  
+  touch(startEvent, onDown) {
+    let pos = pointerPosition(startEvent.touches[0], this.dom);
+    let onMove = onDown(pos);
+    startEvent.preventDefault();
+    if (!onMove) return;
+    
+    let move = moveEvent => {
+      let newPos = pointerPosition(moveEvent.touches[0],
+                                  this.dom);
+      if (newPos.x == pos.x && newPos.y == pos.y) return;
+      pos = newPos;
+      onMove(newPos);
+    };
+    
+    let end = () => {
+      this.dom.removeEventListener('touchmove', move);
+      this.dom.removeEventListener('touchend', end);
+    };
+    
+    this.dom.addEventListener('touchmove', move);
+    this.dom.addEventListener('touchend', end);
+  }
+}
+
+function drawPicture(newPic, canvas, scale, oldPic) {
+  if (!oldPic || oldPic.width !== newPic.width && oldPic.height !== newPic.height) {
+    canvas.width = newPic.width * scale;
+    canvas.height = newPic.height * scale;        
+  }
+  let cx = canvas.getContext('2d');
+  
+  for (let y=0; y<newPic.height; y++) {
+    for (let x=0; x<newPic.width; x++) {
+      if (!oldPic || oldPic.pixel(x, y) !== newPic.pixel(x, y)) {
+        cx.fillStyle = newPic.pixel(x, y);
+        cx.fillRect(x * scale, y * scale, scale, scale);        
+      }
+    }
+  }
+}
+
+function pointerPosition(pos, domNode) {
+  let rect = domNode.getBoundingClientRect();
+  return {x: Math.floor((pos.clientX - rect.left) / scale),
+          y: Math.floor((pos.clientY - rect.top) / scale)};
+}
+
+// UI ELEMENTS BEGIN
+class PixelEditor {
+  constructor(state, config) {
+    let {tools, controls, dispatch} = config;
+    this.state = state;
+    
+    this.canvas = new PictureCanvas(state.picture, pos => {
+      let tool = tools[this.state.tool];
+      let onMove = tool(pos, this.state, dispatch);
+      if (onMove) return pos => onMove(pos, this.state);
+    });
+    this.controls = controls.map(
+      Control => new Control(state, config));
+    this.dom = elt('div', {tabIndex: 0}, this.canvas.dom, elt('br'),
+                   ...this.controls.reduce(
+                     (a,c) => a.concat(' ', c.dom), []));
+    
+    this.dom.addEventListener('keydown', e => {
+      
+      // listen for Ctrl / Cmd key + assigned control shortcut letter
+      if (e.ctrlKey) {
+        this.controls.forEach((ctrl,i) => {
+          if (ctrl.shortcut && e.code === `Key${ctrl.shortcut}`) {
+            e.preventDefault();
+            ctrl.dom.click();
+          }
+        });
+      } else {
+        // listen for first letter of tool names
+        let toolShortcuts = Object.keys(tools).map(tool => tool.slice(0,1));
+        toolShortcuts.forEach(letter => {
+          if (e.key === letter) { 
+            dispatch({tool: Object.keys(tools)[toolShortcuts.indexOf(letter)]});
+          }
+        });        
+      }
+    });
+  }
+  
+  syncState(state) {
+    this.state = state;
+    this.canvas.syncState(state.picture);
+    for (let ctrl of this.controls) ctrl.syncState(state);
+  }
+}
+
+class ToolSelect {
+  constructor(state, {tools, dispatch}) {
+    this.select = elt('select', {
+      onchange: () => dispatch({tool: this.select.value})
+    }, ...Object.keys(tools).map(name => elt('option', {
+      selected: name == state.tool
+    }, name)));
+    this.dom = elt('label', null, '🖌 Tool: ', this.select);
+  }
+  
+  syncState(state) { this.select.value = state.tool; }
+}
+
+class ColorSelect {
+  constructor(state, {dispatch}) {
+    this.input = elt('input', {
+      type: "color",
+      value: state.color,
+      onchange: () => dispatch({color: this.input.value})
+    });
+    this.dom = elt('label', null, "🎨 Color: ", this.input);
+    this.shortcut = 'C';
+  }
+  
+  syncState(state) { this.input.value = state.color; }
+}
+
+class SaveButton {
+  constructor(state) {
+    this.picture = state.picture;
+    this.dom = elt('button', {
+      onclick: () => this.save()
+    }, '💾 Save');
+    this.shortcut = 'S';
+  }
+  
+  save() {
+    let canvas = elt('canvas');
+    drawPicture(this.picture, canvas, 5);
+    let link = elt('a', {
+      href: canvas.toDataURL(),
+      download: 'pixelart.png'
+    });
+    
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+  
+  syncState(state) { this.picture = state.picture; }
+}
+
+class LoadButton {
+  constructor(_, {dispatch}) {
+    this.dom = elt('button', {
+      onclick: () => startLoad(dispatch)
+    }, '📁 Load');
+    this.shortcut = 'L';
+  }
+  
+  syncState() {}
+}
+
+function startLoad(dispatch) {
+  let input = elt('input', {
+    type: "file",
+    onchange: () => finishLoad(input.files[0], dispatch)
+  });
+  
+  document.body.appendChild(input);
+  input.click();
+  input.remove();
+}
+
+function finishLoad(file, dispatch) {
+  if (file == null) return;
+  let reader = new FileReader();
+  reader.addEventListener('load', () => {
+    let image = elt('img', {
+      onload: () => dispatch({
+        picture: pictureFromImage(image)
+      }),
+      src: reader.result
+    });
+  });
+  reader.readAsDataURL(file);
+}
+
+function pictureFromImage(image) {
+  let width = Math.min(100, image.width);
+  let height = Math.min(100, image.height);
+  let canvas = elt('canvas', {width, height});
+  let cx = canvas.getContext('2d');
+  cx.drawImage(image, 0, 0);
+  
+  let pixels = [];
+  let {data} = cx.getImageData(0, 0, width, height);
+  
+  function hex(n) { //helper function to make rgb color strings from canvas ImageData
+    return n.toString(16).padStart(2, "0");
+  }
+  
+  for (let i=0; i<data.length; i+=4) {
+    let [r, g, b] = data.slice(i, i+3);
+    pixels.push(`#${hex(r)}${hex(g)}${hex(b)}`);
+  }
+  return new Picture(width, height, pixels);
+}
+
+class UndoButton {
+  constructor(state, {dispatch}) {
+    this.dom = elt('button', {
+      onclick: () => dispatch({undo: true}),
+      disabled: state.done.length == 0
+    }, '⮪ Undo');
+    this.shortcut = 'Z';
+  }
+  
+  syncState(state) {
+    this.dom.disabled = state.done.length == 0;
+  }
+}
+// UI ELEMENTS END
+
+
+// DRAWING FUNCTIONALITY BEGIN
+function dist(x1, y1, x2, y2) {
+  return Math.sqrt((x2-x1)**2+(y2-y1)**2);
+}
+
+function drawLine(from, to, color) {
+  let points = [];
+  if (Math.abs(from.x - to.x) > Math.abs(from.y - to.y)) {
+    if (from.x > to.x) [from, to] = [to, from];
+    let slope = (to.y - from.y) / (to.x - from.x);
+    for (let {x, y} = from; x <= to.x; x++) {
+      points.push({x, y: Math.round(y), color});
+      y += slope;
+    }
+  }
+  else {
+    if (from.y > to.y) [from, to] = [to, from];
+    let slope = (to.x - from.x) / (to.y - from.y);
+    for (let {x, y} = from; y <= to.y; y++) {
+      points.push({x: Math.round(x),y, color});
+      x += slope;
+    }
+  }
+  return points;
+}
+
+function draw(pos, state, dispatch) {
+  function connect(newPos, state) {
+    let line = drawLine(pos, newPos, state.color);
+    pos = newPos;
+    dispatch({picture: state.picture.draw(line)});
+  }
+  connect(pos, state);
+  return connect;
+}
+
+function line(start, state, dispatch) {
+  return end => {
+    let line = drawLine(start, end, state.color);
+    dispatch({picture: state.picture.draw(line)});
+  };
+}
+
+function rectangle(start, state, dispatch) {
+  function drawRectangle(pos) {
+    let xStart = Math.min(start.x, pos.x);
+    let yStart = Math.min(start.y, pos.y);
+    let xEnd = Math.max(start.x, pos.x);
+    let yEnd = Math.max(start.y, pos.y);
+    let drawn = [];
+    for (let y=yStart; y<=yEnd; y++) {
+      for (let x=xStart; x<=xEnd; x++) {
+        drawn.push({x, y, color: state.color});
+      }
+    }
+    dispatch({picture: state.picture.draw(drawn)});
+  }
+  drawRectangle(start);
+  return drawRectangle;
+}
+
+function circle(start, state, dispatch) {
+  function drawCircle(pos) {
+    let drawn = [];
+    let r = Math.floor(dist(start.x, start.y, pos.x, pos.y));
+    
+    for (let y=start.y-r; y<=start.y+r; y++) {
+      for (let x=start.x-r; x<=start.x+r; x++) {
+        if (Math.floor(dist(start.x, start.y, x, y)) <= r) {
+          drawn.push({x, y, color: state.color});
+        }
+      }
+    }
+    dispatch({picture: state.picture.draw(drawn)});
+  }
+  drawCircle(start);
+  return drawCircle;
+}
+
+const around = [{dx: -1, dy: 0}, {dx: 1, dy: 0},
+                {dx: 0, dy: -1}, {dx: 0, dy: 1}];
+
+function fill({x, y}, state, dispatch) {
+  let targetColor = state.picture.pixel(x, y);
+  let drawn = [{x, y, color: state.color}];
+  for (let done=0; done<drawn.length; done++) {
+    for (let {dx, dy} of around) {
+      let x = drawn[done].x + dx, y = drawn[done].y + dy;
+
+      if (x >= 0 && x < state.picture.width &&
+          y >= 0 && y < state.picture.height &&
+          state.picture.pixel(x, y) == targetColor &&
+         !drawn.some(p => p.x == x && p.y == y)) {
+        drawn.push({x, y, color: state.color});
+      }
+    }
+  }
+  
+  dispatch({picture: state.picture.draw(drawn)});
+}
+
+function pick(pos, state, dispatch) {
+  dispatch({color: state.picture.pixel(pos.x, pos.y)});
+}
+// DRAWING FUNCTIONALITY END
+
+function CreateBlockPicture(canvas){
+    let testPicture = Picture.empty(30, 30, "#f0f0f0");
+    let currentSkinImageData = canvas.getImageData(0, 0, BLOCKSIZE, BLOCKSIZE);
+    let pixels = []
+    for(let j = 0; j < BLOCKSIZE; j++){
+        for(let i = 0; i < BLOCKSIZE; i++){
+            let colorIndices = getColorIndicesForCoord(i, j, BLOCKSIZE);
+
+            var redIndex = colorIndices[0];
+            var greenIndex = colorIndices[1];
+            var blueIndex = colorIndices[2];
+
+            var r = currentSkinImageData.data[redIndex];
+            var g = currentSkinImageData.data[greenIndex];
+            var b = currentSkinImageData.data[blueIndex];
+                
+            let colorHex = ConvertToHex(r, g, b);
+            let pixel = {x: i, y: j, color: colorHex};
+
+            pixels.push(pixel);
+        }
+    }
+    testPicture = testPicture.draw(pixels);
+    return testPicture;
+}
+
+function getColorIndicesForCoord(x, y, width) {
+    var red = y * (width * 4) + x * 4;
+    return [red, red + 1, red + 2, red + 3];
+}
+
+function ConvertToHex(r, g, b){
+    r = r.toString(16);
+    g = g.toString(16);
+    b = b.toString(16);
+  
+    if (r.length == 1)
+      r = "0" + r;
+    if (g.length == 1)
+      g = "0" + g;
+    if (b.length == 1)
+      b = "0" + b;
+  
+    return "#" + r + g + b;
+}
+// Initiate App
+let startState = { tool: "draw",
+             color: "#000000",
+             picture: Picture.empty(30, 30, '#f0f0f0'),
+             done: [],
+             doneAt: 0
+            };
+const baseTools = {draw, line, fill, circle, rectangle, pick};
+const baseControls = [ToolSelect, ColorSelect, UndoButton];
+
+function startPixelEditor({state = startState,
+                           tools = baseTools,
+                           controls = baseControls}) {
+  app = new PixelEditor(state, {
+    tools,
+    controls,
+    dispatch(action) {
+      state = historyUpdateState(state, action);
+      app.syncState(state);
+    }
+  });  
+  return app.dom;
+}

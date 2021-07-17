@@ -28,7 +28,19 @@
                 <canvas id='myCanvas'></canvas>
                 <div id='timer'>00:00:00</div>
             </div>
-            <div id='editor'></div>
+            <div id='editorWrapper'>
+                <div id='editor'></div>
+                <canvas class='editorCanvasBlock' id='zBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='lBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='oBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='sBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='iBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='jBlock'></canvas>
+                <canvas class='editorCanvasBlock' id='tBlock'></canvas>
+                <canvas id='currentEditedBlock'></canvas>
+                <button class='editorButtons' id='cancelSkin'>CANCEL</button>
+                <button class='editorButtons' id='saveSkin'>SAVE</button>
+            </div>
             <div class='currentSkinCanvasWrapper'>
                 <canvas id='currentSkinCanvas'></canvas>
             </div>

@@ -106,3 +106,67 @@ body {
     text-align: center;
     text-align: center;
 }
+
+#editorWrapper {
+    left: 1300px;
+    top: 50px;
+    width: 450px;
+    height: 900px;
+    position: absolute;
+    display: none;
+}
+
+#editor {
+    position: absolute;
+    padding: 2vmax;
+    background: #222;
+    color: white;
+    box-shadow: 0 13px 8px 3px rgba(40,40,40,0.3);
+}
+  
+#editor canvas {
+    margin-bottom: 1vmax;
+}
+  
+#editor button {
+    background: white;
+    color: #222;
+    border: 0;
+    padding: .3em 1em;
+}
+
+.editorButtons {
+    top: 590px;
+    right: 130px;
+    position: relative;
+    letter-spacing: 2px;
+    border: 1px solid #ab2020;
+    color: #fff;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+    background: #111;
+    width: 80px;
+    height: 40px;
+    text-align: center;
+}
+
+.editorButtons:hover {
+    background: #ab2020;
+    cursor: pointer;
+}
+
+#currentEditedBlock {
+    width: 120px;
+    height: 60px;
+    top: 500px;
+    left: 120px;
+    position: absolute;
+}
+
+.editorCanvasBlock {
+    top: 430px;
+    position: relative;
+    width: 30px;
+    height: 30px;
+    margin: 1px;
+}
