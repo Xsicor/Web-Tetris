@@ -91,6 +91,15 @@ body {
     background: #d32de9cb;
 }
 
+#downloadSkin {
+    border: 1px solid #ffb049cb;
+    width: 120px;
+}
+
+#downloadSkin:hover {
+    background: #ffb049cb;
+}
+
 #skinEditor {
     border: 1px solid #19ebcf;
     width: 130px;

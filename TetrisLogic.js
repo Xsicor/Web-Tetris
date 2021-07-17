@@ -322,7 +322,8 @@ class Draw{
         fileSelect.addEventListener("click", CustomSkin.LoadSkin, false);
         fileElem.addEventListener("change", CustomSkin.UpdateCurrentSkin);
         document.getElementById('skinEditor').addEventListener('click', SkinEditor.Click);
-        document.getElementById('saveSkin').addEventListener('click', SkinEditor.SaveSkin);
+        document.getElementById('downloadSkin').addEventListener('click', downloadCanvas, false);
+        document.getElementById('saveEditorSkin').addEventListener('click', SkinEditor.SaveSkin);
         document.getElementById('cancelSkin').addEventListener('click', SkinEditor.ExitEditor);
         
         this.DrawDefaultSkin();
@@ -1515,6 +1516,18 @@ class CustomSkin{
         });
     }
 }
+
+function downloadCanvas() {
+    let link = elt('a', {
+        href: currentSkinCanvas.toDataURL(),
+        download: 'TetrisSkin.png'
+    });
+      
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    }
 
 function Shuffle(a){
     var j, x, i;
