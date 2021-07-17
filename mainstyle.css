@@ -3,24 +3,29 @@ body {
     color: #fff;
 }
 
-.flex-container {
-    display: flex;
-    position:relative;
+.gridContainer {
+    display: grid;
+    grid-template-columns: 25% 50% 25%;
+    grid-template-rows: 100px 572px 3fr 1fr;
 }
 
 #settingsMenu {
     display: none;
-    top: 100px;
-    left: 400px;
-    position: absolute;
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    justify-self: end;
 }
 
 .currentSkinCanvasWrapper {
     width: 372px;
     height: 30px;
-    position: absolute;
-    left: 720px;
-    top: 800px;
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 4;
+    grid-row-end: 5;
+    justify-self: center;
 }
 
 #currentSkinCanvas {
@@ -30,22 +35,26 @@ body {
     display: none;
 }
 
-#my-canvas {
+#gameCanvas {
     background: #111;
 }
 
-.canvasWrapper {
+.gameCanvasWrapper {
 	width: 650px;
-
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%);               
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 3;      
+    justify-self: center;      
 }
 
 #options {
-    text-align: center;
-    top: 700px;
-    position: relative;
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;  
+    align-self: center;
+    justify-self: center; 
 }
 
 .options-button {
@@ -93,7 +102,7 @@ body {
 
 #downloadSkin {
     border: 1px solid #ffb049cb;
-    width: 120px;
+    width: 170px;
 }
 
 #downloadSkin:hover {
@@ -117,11 +126,12 @@ body {
 }
 
 #editorWrapper {
-    left: 1300px;
-    top: 50px;
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3; 
     width: 450px;
     height: 900px;
-    position: absolute;
     display: none;
 }
 
@@ -164,22 +174,22 @@ body {
     cursor: pointer;
 }
 
-.editorCanvasBlock:hover {
-    cursor: pointer;
-}
-
 #currentEditedBlock {
     width: 120px;
     height: 60px;
-    top: 500px;
-    left: 120px;
+    top: 600px;
+    right: 200px;
     position: absolute;
 }
 
-.editorCanvasBlock {
+.editorCanvasSkinBlock {
     top: 430px;
     position: relative;
     width: 30px;
     height: 30px;
     margin: 1px;
+}
+
+.editorCanvasSkinBlock:hover {
+    cursor: pointer;
 }

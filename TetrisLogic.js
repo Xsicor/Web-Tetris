@@ -298,7 +298,7 @@ class Preview{
 class Draw{
     
     static Setup = ()=>{
-        canvas = document.getElementById('myCanvas');
+        canvas = document.getElementById('gameCanvas');
         ctx = canvas.getContext('2d');
         canvas.width = 650;
         canvas.height = 650;
@@ -306,7 +306,7 @@ class Draw{
         document.getElementById('currentEditedBlock').width = 120;
         document.getElementById('currentEditedBlock').height = 60;
 
-        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        let editorSkin = document.getElementsByClassName('editorCanvasSkinBlock');
         for(let i = 0; i < editorSkin.length; i++){
             editorSkin[i].width = 30;
             editorSkin[i].height = 30;
@@ -545,7 +545,7 @@ class SkinEditor{
     }
 
     static SaveSkin = ()=>{
-        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        let editorSkin = document.getElementsByClassName('editorCanvasSkinBlock');
         let sy = 0;
         for(let i = 0; i < editorSkin.length; i++){
             let sx = i * 31;
@@ -636,7 +636,7 @@ class SkinEditor{
     }
 
     static DrawSkin(){
-        let editorSkin = document.getElementsByClassName('editorCanvasBlock');
+        let editorSkin = document.getElementsByClassName('editorCanvasSkinBlock');
         let sy = 0;
         for(let i = 0; i < editorSkin.length; i++){
             let sx = i * 31;

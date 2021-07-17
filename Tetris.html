@@ -7,7 +7,7 @@
         <link rel="stylesheet" type="text/css" href="mainstyle.css">
     </head>
     <body>
-        <div class="flex-container">
+        <div class="gridContainer">
             <div id='settingsMenu'>
                 <h2>Settings</h2>
                 <form id='settingsForm'>
@@ -24,19 +24,19 @@
                     <input type="submit" value="Save">
                 </form>
             </div>
-            <div class='canvasWrapper'>
-                <canvas id='myCanvas'></canvas>
+            <div class='gameCanvasWrapper'>
+                <canvas id='gameCanvas'></canvas>
                 <div id='timer'>00:00:00</div>
             </div>
             <div id='editorWrapper'>
                 <div id='editor'></div>
-                <canvas class='editorCanvasBlock' id='zBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='lBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='oBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='sBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='iBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='jBlock'></canvas>
-                <canvas class='editorCanvasBlock' id='tBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='zBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='lBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='oBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='sBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='iBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='jBlock'></canvas>
+                <canvas class='editorCanvasSkinBlock' id='tBlock'></canvas>
                 <canvas id='currentEditedBlock'></canvas>
                 <button class='editorButtons' id='cancelSkin'>CANCEL</button>
                 <button class='editorButtons' id='saveEditorSkin'>SAVE</button>
@@ -44,16 +44,17 @@
             <div class='currentSkinCanvasWrapper'>
                 <canvas id='currentSkinCanvas'></canvas>
             </div>
+            <div id=options>
+                <button class='options-button' id='settings'>SETTINGS</button>
+                <button class='options-button' id='sprint'>SPRINT</button>
+                <button class='options-button' id='currentSkin'>CURRENT SKIN</button>
+                <input type="file" id="fileElem" accept="image/*" style="display:none">
+                <button class='options-button' id="loadSkin">LOAD SKIN</button>
+                <button class='options-button' id="downloadSkin">DOWNLOAD SKIN</button>
+                <button class='options-button' id="skinEditor">SKIN EDITOR</button>
+            </div>
         </div>
-        <div id=options>
-            <button class='options-button' id='settings'>SETTINGS</button>
-            <button class='options-button' id='sprint'>SPRINT</button>
-            <button class='options-button' id='currentSkin'>CURRENT SKIN</button>
-            <input type="file" id="fileElem" accept="image/*" style="display:none">
-            <button class='options-button' id="loadSkin">LOAD SKIN</button>
-            <button class='options-button' id="downloadSkin">DOWNLOAD SKIN</button>
-            <button class='options-button' id="skinEditor">SKIN EDITOR</button>
-        </div>
+        
         <script src="TetrisLogic.js"></script>
     </body>
 </html>
