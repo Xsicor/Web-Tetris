@@ -296,7 +296,6 @@ class Preview{
 }
 
 class Draw{
-    
     static Setup = ()=>{
         canvas = document.getElementById('gameCanvas');
         ctx = canvas.getContext('2d');
@@ -315,6 +314,7 @@ class Draw{
 
         this.ClearCanvas();
         this.DrawGridLines();
+        Settings.Setup()
 
         document.getElementById('sprint').addEventListener('click', Logic.StartGameDelay);
         document.getElementById('settings').addEventListener('click', Settings.Display);
@@ -1405,8 +1405,11 @@ class Settings{
     static newKey = '';
     static bindingToChange = '';
 
-    static Display = () =>{
+    static Display = ()=>{
         settingsMenu.style.display = "block";
+    }
+
+    static Setup = ()=>{
         settingsForm.addEventListener('submit', this.Submit);
         document.getElementById('DAS').value = das;
         document.getElementById('ARR').value = arr;
@@ -1428,7 +1431,7 @@ class Settings{
         document.getElementById('resetGame').addEventListener('click', this.GetKey);
     }
 
-    static GetKey = (event) =>{
+    static GetKey = (event)=>{
         document.addEventListener('keydown', this.ChangeBinding);
         this.bindingToChange = event.currentTarget.id;
         event.currentTarget.style.backgroundColor = "yellow";
