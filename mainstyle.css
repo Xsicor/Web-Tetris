@@ -5,7 +5,7 @@ body {
 
 .gridContainer {
     display: grid;
-    grid-template-columns: 25% 50% 25%;
+    grid-template-columns: 25% 45% 5% 25%;
     grid-template-rows: 100px 572px 3fr 1fr;
 }
 
@@ -42,7 +42,7 @@ body {
 .gameCanvasWrapper {
 	width: 650px;
     grid-column-start: 2;
-    grid-column-end: 3;
+    grid-column-end: 4;
     grid-row-start: 1;
     grid-row-end: 3;      
     justify-self: center;      
@@ -50,7 +50,7 @@ body {
 
 #options {
     grid-column-start: 2;
-    grid-column-end: 3;
+    grid-column-end: 4;
     grid-row-start: 3;
     grid-row-end: 4;  
     align-self: center;
@@ -127,7 +127,7 @@ body {
 
 #editorWrapper {
     grid-column-start: 3;
-    grid-column-end: 4;
+    grid-column-end: 5;
     grid-row-start: 2;
     grid-row-end: 3; 
     width: 450px;
@@ -178,7 +178,7 @@ body {
     width: 120px;
     height: 60px;
     top: 600px;
-    right: 200px;
+    right: 300px;
     position: absolute;
 }
 
