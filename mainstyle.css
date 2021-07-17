@@ -164,6 +164,10 @@ body {
     cursor: pointer;
 }
 
+.editorCanvasBlock:hover {
+    cursor: pointer;
+}
+
 #currentEditedBlock {
     width: 120px;
     height: 60px;
