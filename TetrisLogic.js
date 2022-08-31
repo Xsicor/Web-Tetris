@@ -318,6 +318,7 @@ class Draw{
 
         document.getElementById('sprint').addEventListener('click', Logic.StartGameDelay);
         document.getElementById('settings').addEventListener('click', Settings.Display);
+        document.getElementById('skinCustomiser').addEventListener('click', this.showCustomiser);
         document.getElementById('currentSkin').addEventListener('click', this.ShowCurrentSkin);
         fileSelect.addEventListener("click", CustomSkin.LoadSkin, false);
         fileElem.addEventListener("change", CustomSkin.UpdateCurrentSkin);
@@ -328,6 +329,15 @@ class Draw{
         
         this.DrawDefaultSkin();
         document.getElementById('editor').appendChild(startPixelEditor({}));
+    }
+
+    static showCustomiser() {
+        let options = document.getElementById('skinEditorOptions');
+        if(options.style.display === 'none'){
+            options.style.display = 'block';
+        } else {
+            options.style.display = 'none';
+        }
     }
 
     static DrawBlock(piece, x, y){

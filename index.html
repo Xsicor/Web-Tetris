@@ -44,14 +44,19 @@
             <div class='currentSkinCanvasWrapper'>
                 <canvas id='currentSkinCanvas'></canvas>
             </div>
-            <div id=options>
-                <button class='options-button' id='settings'>SETTINGS</button>
-                <button class='options-button' id='sprint'>SPRINT</button>
-                <button class='options-button' id='currentSkin'>CURRENT SKIN</button>
-                <input type="file" id="fileElem" accept="image/*" style="display:none">
-                <button class='options-button' id="loadSkin">LOAD SKIN</button>
-                <button class='options-button' id="downloadSkin">DOWNLOAD SKIN</button>
-                <button class='options-button' id="skinEditor">SKIN EDITOR</button>
+            <div id="optionsContainer">
+                <oi id=options>
+                    <li><button class='options-button' id='settings'>SETTINGS</button> </li>
+                    <li><button class='options-button' id='sprint'>SPRINT</button></li>
+                    <li><button class='options-button' id='skinCustomiser'>SKIN CUSTOMISER</button></li>
+                </oi>
+                <oi id="skinEditorOptions">
+                    <li><button class='options-button' id='currentSkin'>CURRENT SKIN</button></li>
+                    <li><input type="file" id="fileElem" accept="image/*" style="display:none"></li>
+                    <li><button class='options-button' id="loadSkin">LOAD SKIN</button></li>
+                    <li><button class='options-button' id="downloadSkin">DOWNLOAD SKIN</button></li>
+                    <li><button class='options-button' id="skinEditor">SKIN EDITOR</button></li>
+                </oi>
             </div>
         </div>
         
