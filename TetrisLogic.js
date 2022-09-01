@@ -337,6 +337,7 @@ class Draw{
             options.style.display = 'block';
         } else {
             options.style.display = 'none';
+            currentSkinCanvas.style.display = 'none';
         }
     }
 
